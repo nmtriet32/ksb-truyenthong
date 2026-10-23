@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>KSB Truyền thông</title>
+  <link rel="icon" href="assets/img/logo-ksb.png">
+  <link rel="stylesheet" href="assets/css/fonts.css">
+  <link rel="stylesheet" href="assets/css/style.css">
+  <link rel="stylesheet" href="assets/css/theme.css">
+</head>
+<body>
+<header class="hdr" id="hdr">
+  <div class="wrap">
+    <a class="logo" href="#/"><img src="assets/img/logo-ksb.png" alt="KSB"><span>Truyền thông<br>2026–2027</span></a>
+    <ul class="menu" id="menu"></ul>
+    <div class="tools">
+      <span class="status" id="status"><i></i><span id="status-text">Đang tải…</span></span>
+      <button class="ib" id="btn-refresh" title="Tải lại dữ liệu (R)">↻</button>
+      <button class="ib dark" id="btn-present" title="Trình chiếu (P)">▶ Trình chiếu</button>
+      <button class="ib burger" id="btn-menu" aria-label="Mở menu">☰</button>
+    </div>
+  </div>
+</header>
+
+<main id="page"></main>
+
+<footer>
+  <div class="wrap">
+    <span>Công ty CP Khoáng sản và Xây dựng Bình Dương · www.ksb.vn</span>
+    <span class="sp"></span>
+    <span id="foot-src">Dữ liệu: Sheet "Kế hoạch truyền thông 2027"</span>
+    <a id="sheet-link" target="_blank" rel="noopener">Mở Sheet ↗</a>
+  </div>
+</footer>
+
+<div class="pager">
+  <button class="ib" id="pg-prev">← Trước</button>
+  <button class="ib" id="pg-next">Sau →</button>
+  <button class="ib dark" id="pg-exit">Thoát</button>
+</div>
+
+<script src="assets/vendor/chart.umd.min.js"></script>
+<script src="assets/js/config.js"></script>
+<script src="data/snapshot.js"></script>
+<script src="assets/js/app.js"></script>
+</body>
+</html>

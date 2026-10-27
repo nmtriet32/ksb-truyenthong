@@ -353,7 +353,7 @@ function upcoming(n = 7) {
   return items.filter(i => days(t0, i.d) >= -30).sort((a, b) => a.d - b.d).slice(0, n);
 }
 function costByYear() {
-  const cats = M.cp26.map(c => c['Đầu mục']).filter(n => n && !/khác/i.test(n));
+  const cats = M.cp26.map(c => c['Đầu mục']).filter(n => n && !/^khác/i.test(n));
   const hist = Object.fromEntries(M.cpHist.map(h => [h['Đầu mục'], h])); const c26 = Object.fromEntries(M.cp26.map(h => [h['Đầu mục'], h]));
   const yv = cat => [num((hist[cat] || {})['Tổng 2024']), num((hist[cat] || {})['Tổng 2025']), num((c26[cat] || {})['Tổng 2026'])];
   return { cats, yv, totals: [0, 1, 2].map(i => cats.reduce((a, c) => a + yv(c)[i], 0)) };

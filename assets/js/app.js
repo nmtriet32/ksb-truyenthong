@@ -759,14 +759,64 @@ function pLock() {
 const relockBtn = `<button type="button" class="relock" id="btn-relock">${ic('lock')}Khóa lại</button>`;
 const bindRelock = () => { const b = $('#btn-relock'); if (b) b.onclick = () => { relock(); render(false); }; };
 const guard = f => () => M.unlocked ? f() : pLock();
+/* Bộ chọn năm cho mục Ngân sách: chọn một hoặc nhiều năm để so sánh */
+const YEAR_KEY = 'ksb-budget-years', ALL_YEARS = [2024, 2025, 2026, 2027];
+const YCOL = { 2024: '#a3adbd', 2025: '#5b8fd1', 2026: '#0d4f9b', 2027: '#0f766e' };
+let YSEL = (() => { try { const v = JSON.parse(localStorage.getItem(YEAR_KEY) || 'null'); if (Array.isArray(v) && v.length) return v.filter(y => ALL_YEARS.includes(y)); } catch (_) { } return ALL_YEARS.slice(); })();
+const yNote = y => y === 2027 ? 'dự toán' : y === 2026 ? `thực tế đến ${M.cpLatest}` : 'thực tế';
+const ySel = () => ALL_YEARS.filter(y => YSEL.includes(y));
+function yearBar(note) {
+  return `<div class="ybar" id="ybar"><span class="yb-l">${ic('event')}Chọn năm để so sánh</span><div class="yb-c">${ALL_YEARS.map(y => `<button type="button" class="ychip ${YSEL.includes(y) ? 'on' : ''}" data-y="${y}" style="--yc:${YCOL[y]}" aria-pressed="${YSEL.includes(y)}"><i></i>${y}<small>${y === 2027 ? 'dự toán' : 'thực tế'}</small></button>`).join('')}<button type="button" class="ychip all" data-y="all">Tất cả</button></div>${note ? `<span class="yb-n">${note}</span>` : ''}</div>`;
+}
+function bindYears() {
+  const b = $('#ybar'); if (!b) return;
+  b.addEventListener('click', e => {
+    const t = e.target.closest('.ychip'); if (!t) return;
+    if (t.dataset.y === 'all') YSEL = ALL_YEARS.slice();
+    else { const y = +t.dataset.y; YSEL = YSEL.includes(y) ? YSEL.filter(x => x !== y) : YSEL.concat(y); if (!YSEL.length) YSEL = [y]; }
+    try { localStorage.setItem(YEAR_KEY, JSON.stringify(YSEL)); } catch (_) { }
+    render(true);
+  });
+}
+/** Số tiền một đầu mục trong một năm: 2024–2025 từ CP 2024–2025, 2026 từ CP 2026 · Tổng hợp, 2027 từ dự toán NS 2027 · Phòng TT */
+function catYear(cat, y) {
+  if (y === 2026) return num((M.cp26.find(x => x['Đầu mục'] === cat) || {})['Tổng 2026']);
+  if (y === 2027) return num((M.regular.find(x => x['Đầu mục'] === cat) || {})['Dự toán 2027']);
+  return num((M.cpHist.find(x => x['Đầu mục'] === cat) || {})[`Tổng ${y}`]);
+}
+function catQ(cat, y, q) {
+  if (y === 2026) return num((M.cp26.find(x => x['Đầu mục'] === cat) || {})['Q' + q]);
+  if (y === 2027) return null;
+  return num((M.cpHist.find(x => x['Đầu mục'] === cat) || {})[`${y} · Q${q}`]);
+}
+const allCats = () => M.cp26.map(c => c['Đầu mục']).filter(Boolean);
+const yearTotal = y => allCats().reduce((a, c) => a + catYear(c, y), 0) + (y === 2027 ? M.campTotal : 0);
+function yearCompare() {
+  const ys = ySel(), cats = allCats().filter(c => ys.some(y => catYear(c, y) > 0)); const has27 = ys.includes(2027);
+  const tot = ys.map(y => yearTotal(y));
+  const cards = ys.map((y, i) => { const prev = i ? tot[i - 1] : null; const d = prev ? Math.round((tot[i] - prev) / prev * 100) : null; return `<div class="ycard" style="--yc:${YCOL[y]}"><div class="yc-h"><b>${y}</b><span>${esc(yNote(y))}</span></div><div class="yc-v">${fVND(tot[i])}</div>${d === null ? '<div class="yc-d">mốc so sánh</div>' : `<div class="yc-d ${d > 0 ? 'up' : d < 0 ? 'down' : ''}">${d > 0 ? '▲' : d < 0 ? '▼' : '■'} ${Math.abs(d)}% so với ${ys[i - 1]}</div>`}${y === 2027 ? `<div class="yc-s">gồm chiến dịch Người KSB ${fVND(M.campTotal)}</div>` : ''}</div>`; }).join('');
+  const rows = cats.map(c => ({ c, v: ys.map(y => catYear(c, y)) })).concat(has27 ? [{ c: 'Chiến dịch Người KSB (mới 2027)', v: ys.map(y => y === 2027 ? M.campTotal : 0), camp: 1 }] : []);
+  const first = ys[0], last = ys[ys.length - 1];
+  const table = `<div class="xs"><table class="tbl ytbl"><tr><th>Đầu mục</th>${ys.map(y => `<th class="r"><i style="background:${YCOL[y]}"></i>${y}</th>`).join('')}${ys.length > 1 ? `<th class="r">${last} so với ${first}</th>` : ''}</tr>${rows.map(r => { const a = r.v[0], b = r.v[r.v.length - 1]; const d = b - a; return `<tr${r.camp ? ' class="camp"' : ''}><td>${esc(r.c)}</td>${r.v.map(v => `<td class="r tnum">${v ? fVND(v) : '–'}</td>`).join('')}${ys.length > 1 ? `<td class="r tnum ${d > 0 ? 'up' : d < 0 ? 'down' : ''}">${d ? (d > 0 ? '+' : '−') + fVND(Math.abs(d)) : '–'}${a && d ? ` <small>(${d > 0 ? '+' : ''}${Math.round(d / a * 100)}%)</small>` : ''}</td>` : ''}</tr>`; }).join('')}<tr class="sum"><td>Tổng</td>${tot.map(v => `<td class="r tnum">${fVND(v)}</td>`).join('')}${ys.length > 1 ? `<td class="r tnum">${tot[tot.length - 1] - tot[0] >= 0 ? '+' : '−'}${fVND(Math.abs(tot[tot.length - 1] - tot[0]))}</td>` : ''}</tr></table></div>`;
+  const qYears = ys.filter(y => y !== 2027);
+  return `${yearBar('2024–2026 là chi thực tế (đã gồm VAT); 2027 là dự toán.')}<div class="ycards" style="--n:${ys.length}">${cards}</div>
+    <div class="grid g64" style="margin-top:20px">${box('So sánh theo đầu mục', ys.join(' · '), canvas('c-ycat', 'xl'), 'CP 2024–2025 · CP 2026 · Tổng hợp · NS 2027 · Phòng TT')}${box('Nhịp chi theo quý', qYears.length ? qYears.join(' · ') : '', qYears.length ? canvas('c-yq', 'xl') : empty('2027 chưa có số theo quý', 'Dự toán 2027 mới có số cả năm. Chọn thêm 2024, 2025 hoặc 2026 để xem nhịp chi theo quý.'), 'CP 2024–2025 · CP 2026 · Tổng hợp')}</div>
+    <div style="height:20px"></div>${box('Bảng so sánh', 'Bấm năm ở trên để thêm hoặc bớt cột', table)}`;
+}
+function yearCompareCharts() {
+  const ys = ySel(), cats = allCats().filter(c => ys.some(y => catYear(c, y) > 0)); const has27 = ys.includes(2027);
+  const labels = cats.concat(has27 ? ['Chiến dịch Người KSB'] : []);
+  barChart('c-ycat', labels, ys.map(y => ({ label: String(y), data: cats.map(c => catYear(c, y)).concat(has27 ? [y === 2027 ? M.campTotal : 0] : []), color: YCOL[y] })), { horizontal: true, money: true });
+  const qYears = ys.filter(y => y !== 2027);
+  if (qYears.length) chart('c-yq', { type: 'line', data: { labels: ['Q1', 'Q2', 'Q3', 'Q4'], datasets: qYears.map(y => ({ label: String(y), data: [1, 2, 3, 4].map(q => allCats().reduce((a, c) => a + (catQ(c, y, q) || 0), 0)), borderColor: YCOL[y], backgroundColor: YCOL[y], tension: .3, pointRadius: 4, borderWidth: 2.5 })) }, options: { plugins: { tooltip: tipMoney('y') }, scales: { x: { grid: { display: false } }, y: moneyAxis } } });
+}
 function pBudgetHub() {
-  const cy = costByYear();
   const regAmt = M.regular.map(r => num(r['Dự toán 2027']));
   const act = M.nsAct.filter(a => a['Hoạt động']);
   const html = `${head({ crumb: [{ t: 'Ngân sách' }], title: '<b>Ngân sách</b> truyền thông 2027', lead: `Chi thường xuyên dựa trên chi thực tế 2026, cộng chiến dịch Người KSB. Đơn giá chiến dịch đang tạm tính. ${relockBtn}`, figs: [fig(fVND(M.grand), 'tổng ngân sách 2027', '', 'money'), fig(esc(M.growth || '–'), 'so với chi 2026 cả năm', '', 'chart'), fig(fVND(M.regTotal), 'chi thường xuyên', '', 'layers'), fig(fVND(M.campTotal), 'chiến dịch Người KSB', '', 'users')], tabs: tabsOf([{ id: 'ngan-sach', t: 'Tổng quan' }].concat(itemsOf('ngan-sach')), 'ngan-sach') })}
   ${sec('01', 'Cơ cấu ngân sách 2027', `<div class="grid g46">${box('Hai phần ngân sách', 'Chi thường xuyên và chiến dịch', donutBox('c-bud', fVND(M.grand), 'tổng 2027', 'lg'), 'NS 2027 · Phòng TT')}${box('Chi thường xuyên theo đầu mục', 'Dự toán 2027 (đã gồm VAT)', canvas('c-reg', 'lg'), 'NS 2027 · Phòng TT')}</div>`)}
   ${sec('02', 'Chiến dịch Người KSB theo hoạt động', `<div class="grid g64">${box('Theo quý', 'Chưa dự phòng, chưa VAT', canvas('c-act', 'lg'), 'NS Tổng')}${box('Bảng chi tiết', '', `<table class="tbl"><tr><th>Hoạt động</th><th class="r">Tổng</th></tr>${act.map(a => `<tr><td>${esc(a['Hoạt động'])}<span class="sub">${esc(a['Tab chi tiết'])}</span></td><td class="r tnum">${fVND(num(a['Tổng']))}</td></tr>`).join('')}</table>`, 'NS Tổng')}</div>`)}
-  ${sec('03', 'Chi phí truyền thông 2024–2026', `${say(`Tổng chi giảm từ <b>${fVND(cy.totals[0])}</b> năm 2024 xuống <b>${fVND(cy.totals[1])}</b> năm 2025; năm 2026 tính đến ${esc(M.cpLatest)} là <b>${fVND(cy.totals[2])}</b>.`)}${box('Chi phí theo đầu mục', 'Đã gồm VAT; 2026 tính đến ' + esc(M.cpLatest), canvas('c-years', 'lg'), 'CP 2024–2025 · CP 2026 · Tổng hợp')}`)}
+  ${sec('03', 'So sánh theo năm', yearCompare())}
   ${sec('04', 'Chi tiết', `<div class="tiles">${itemsOf('ngan-sach').map(i => tileOf(i, 'Ngân sách')).join('')}</div>`)}`;
   const after = () => {
     bindRelock();
@@ -775,10 +825,12 @@ function pBudgetHub() {
     barChart('c-reg', rg.map(x => x[0]), [{ label: 'Dự toán 2027', data: rg.map(x => x[1]), color: '#0f766e' }], { horizontal: true, money: true });
     const qs = ['Q1', 'Q2', 'Q3', 'Q4', 'T1/2028'];
     barChart('c-act', qs, act.map((a, i) => ({ label: a['Hoạt động'], data: qs.map(q => num(a[q])), color: C[i % C.length] })), { stacked: true, money: true });
-    barChart('c-years', ['2024', '2025', '2026'], cy.cats.map((c, i) => ({ label: c, data: cy.yv(c), color: C[i % C.length] })), { stacked: true, money: true });
+    yearCompareCharts(); bindYears();
   };
   return { html, after };
 }
+const EXT = ['Hợp đồng truyền thông báo chí', 'Sự kiện & quà tri ân báo chí', 'Tài trợ & sự kiện đối tác'];
+const qLabs = () => ySel().filter(y => y !== 2027).flatMap(y => [1, 2, 3, 4].map(q => [y, q]));
 function pBudgetExt() {
   const press = catQuarters('Hợp đồng truyền thông báo chí'), ev = catQuarters('Sự kiện & quà tri ân báo chí'), sp = catQuarters('Tài trợ & sự kiện đối tác');
   const rows = M.raw.filter(r => /hợp đồng truyền thông báo chí/i.test(r.cat));
@@ -789,17 +841,18 @@ function pBudgetExt() {
   const reg = M.regular.find(r => /tài trợ/i.test(r['Đầu mục'])) || {};
   const c26 = M.cp26.filter(c => num(c['Tổng 2026']) > 0);
   const html = `${head({ crumb: [{ id: 'ngan-sach', t: 'Ngân sách' }, { t: 'Chi đối ngoại' }], title: 'Ngân sách · <b>Chi đối ngoại</b>', lead: `Hợp đồng báo chí, sự kiện và quà tri ân báo chí, tài trợ: chi thực tế 2024–2026 và kế hoạch 2027. ${relockBtn}`, tabs: tabsOf([{ id: 'ngan-sach', t: 'Tổng quan' }].concat(itemsOf('ngan-sach')), 'ngan-sach/doi-ngoai'), figs: [fig(fVND(total), `${rows.length} hợp đồng báo chí 2026`), fig(fVND(owed), 'còn phải thanh toán', owed ? 'alert' : ''), fig(fVND(pr27), 'bài PR chiến dịch 2027 (chưa VAT)'), fig(fVND(num(reg['Dự toán 2027'])), 'dự toán tài trợ 2027')] })}
-  ${sec('01', 'Chi đối ngoại theo quý, 2024–2026', `${say(`Chi hợp đồng báo chí là <b>${fVND(press.y24)}</b> năm 2024 và <b>${fVND(press.y25)}</b> năm 2025; tài trợ giảm từ <b>${fVND(sp.y24)}</b> xuống <b>${fVND(sp.y25)}</b> và chưa phát sinh năm 2026.`)}<div class="grid g64">${box('Chi theo quý', '', canvas('c-ext', 'lg'), 'CP 2024–2025 · CP 2026 · Tổng hợp (2026 tính đến ' + M.cpLatest + ')')}${box('Cơ cấu chi năm 2026', 'Theo đầu mục', donutBox('c-c26', fVND(M.cp26.reduce((a, c) => a + num(c['Tổng 2026']), 0)), 'tổng 2026', 'lg'), 'CP 2026 · Tổng hợp')}</div>`)}
+  ${sec('01', 'Chi đối ngoại theo năm và quý', `${yearBar('Biểu đồ theo quý chỉ có 2024–2026; năm 2027 xem ở bảng bên dưới.')}<div class="ycards" style="--n:${ySel().length}">${ySel().map(y => `<div class="ycard" style="--yc:${YCOL[y]}"><div class="yc-h"><b>${y}</b><span>${esc(yNote(y))}</span></div><div class="yc-v">${fVND(EXT.reduce((a, c) => a + catYear(c, y), 0))}</div><div class="yc-s">báo chí ${fVND(catYear(EXT[0], y))} · tri ân ${fVND(catYear(EXT[1], y))} · tài trợ ${fVND(catYear(EXT[2], y))}</div></div>`).join('')}</div><div class="grid g64" style="margin-top:20px">${box('Chi theo quý', ySel().filter(y => y !== 2027).join(' · '), qLabs().length ? canvas('c-ext', 'lg') : empty('Chưa có số theo quý cho 2027'), 'CP 2024–2025 · CP 2026 · Tổng hợp (2026 tính đến ' + M.cpLatest + ')')}${box('Cơ cấu chi năm 2026', 'Theo đầu mục', donutBox('c-c26', fVND(M.cp26.reduce((a, c) => a + num(c['Tổng 2026']), 0)), 'tổng 2026', 'lg'), 'CP 2026 · Tổng hợp')}</div>`)}
   ${sec('02', 'Hợp đồng báo chí năm 2026', `${say(`Năm 2026 có <b>${rows.length}</b> hợp đồng với <b>${units.length}</b> đơn vị, tổng <b>${fVND(total)}</b>; mới thanh toán <b>${pct(total - owed, total)}%</b>. Ba đơn vị lớn nhất chiếm <b>${pct(units.slice(0, 3).reduce((a, u) => a + u[1].amt, 0), total)}%</b> giá trị.`)}
     <div class="grid g64">${box('Giá trị hợp đồng theo đơn vị', 'Đã gồm VAT; tách phần đã và chưa thanh toán', canvas('c-units', 'xl'), 'CP 2026 · Dữ liệu gốc')}${box('Tình trạng thanh toán', '', donutBox('c-paid', pct(total - owed, total) + '%', 'đã thanh toán', 'xl'), 'CP 2026 · Dữ liệu gốc')}</div>`)}
-  ${sec('03', 'Kế hoạch 2027 và tài trợ', `<div class="grid g2">${box('Bài PR cho chiến dịch Người KSB', `${M.ppPress.length} hạng mục · ${fVND(pr27)} chưa VAT`, `<div class="list">${M.ppPress.map(x => `<div class="li"><div class="d"><b style="font-size:14px">${esc(x['Đợt'])}</b></div><div><div class="t">${esc(x['Hạng mục'])}</div><div class="s">${esc(x['Mô tả'])}</div></div><span class="tnum">${fVND(num(x['Thành tiền']))}</span></div>`).join('')}</div>`, 'NS Phân phối')}${box('Tài trợ qua các quý', esc(reg['Ghi chú'] || ''), canvas('c-sp', 'lg'), 'CP 2024–2025 · CP 2026 · Tổng hợp')}</div>`)}`;
+  ${sec('03', 'Kế hoạch 2027 và tài trợ', `<div class="grid g2">${box('Bài PR cho chiến dịch Người KSB', `${M.ppPress.length} hạng mục · ${fVND(pr27)} chưa VAT`, `<div class="list">${M.ppPress.map(x => `<div class="li"><div class="d"><b style="font-size:14px">${esc(x['Đợt'])}</b></div><div><div class="t">${esc(x['Hạng mục'])}</div><div class="s">${esc(x['Mô tả'])}</div></div><span class="tnum">${fVND(num(x['Thành tiền']))}</span></div>`).join('')}</div>`, 'NS Phân phối')}${box('Tài trợ qua các quý', esc(reg['Ghi chú'] || ''), qLabs().length ? canvas('c-sp', 'lg') : empty('Chưa có số theo quý cho 2027'), 'CP 2024–2025 · CP 2026 · Tổng hợp')}</div>`)}`;
   const after = () => {
     bindRelock();
     makeDonut('c-c26', c26.map(c => c['Đầu mục']), c26.map(c => num(c['Tổng 2026'])), c26.map((_, i) => C[i % C.length]), { money: true });
-    barChart('c-ext', press.labels, [{ label: 'Hợp đồng báo chí', data: press.vals, color: C[0] }, { label: 'Sự kiện, quà tri ân báo chí', data: ev.vals, color: C[2] }, { label: 'Tài trợ, sự kiện đối tác', data: sp.vals, color: C[1] }], { stacked: true, money: true });
+    const QL = qLabs(); if (QL.length) barChart('c-ext', QL.map(([y, q]) => `Q${q}/${String(y).slice(2)}`), EXT.map((c, i) => ({ label: ['Hợp đồng báo chí', 'Sự kiện, quà tri ân báo chí', 'Tài trợ, sự kiện đối tác'][i], data: QL.map(([y, q]) => catQ(c, y, q)), color: [C[0], C[2], C[1]][i] })), { stacked: true, money: true });
     barChart('c-units', units.map(u => u[0]), [{ label: 'Đã thanh toán', data: units.map(u => u[1].paid), color: '#1a7f4b' }, { label: 'Còn phải trả', data: units.map(u => u[1].amt - u[1].paid), color: C[3] }], { horizontal: true, stacked: true, money: true });
     makeDonut('c-paid', ['Đã thanh toán', 'Còn phải trả'], [total - owed, owed], ['#1a7f4b', '#c98a00'], { money: true });
-    barChart('c-sp', sp.labels, [{ label: 'Tài trợ, sự kiện đối tác', data: sp.vals, color: C[1] }], { money: true });
+    if (QL.length) barChart('c-sp', QL.map(([y, q]) => `Q${q}/${String(y).slice(2)}`), [{ label: 'Tài trợ, sự kiện đối tác', data: QL.map(([y, q]) => catQ(EXT[2], y, q)), color: C[1] }], { money: true });
+    bindYears();
   };
   return { html, after };
 }

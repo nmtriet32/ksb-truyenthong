@@ -103,6 +103,38 @@ function datMatKhauNganSach() {
   Logger.log('Đã lưu mật khẩu mục Ngân sách.');
 }
 
+/** Lãnh đạo bấm Duyệt / Cần sửa trên trang Nội dung → ghi vào tab "Duyệt nội dung". Cần TOKEN và mật khẩu lãnh đạo. */
+const APPROVAL_SHEET = 'Duyệt nội dung';
+const APPROVAL_STATES = ['', 'Đã duyệt', 'Cần sửa'];
+function doPost(e) {
+  let p = {};
+  try { p = JSON.parse((e && e.postData && e.postData.contents) || '{}'); } catch (err) { return json_({ error: 'bad_request', message: 'Dữ liệu gửi lên không đọc được.' }); }
+  if (TOKEN && p.token !== TOKEN) return json_({ error: 'unauthorized', message: 'Sai hoặc thiếu token.' });
+  const chk = checkPassword_(p.pw || '');
+  if (!chk.ok) return json_({ error: 'bad_password', message: chk.message });
+  if (p.action !== 'approve') return json_({ error: 'bad_request', message: 'Thao tác không hợp lệ.' });
+  if (APPROVAL_STATES.indexOf(p.status) === -1 || !p.key) return json_({ error: 'bad_request', message: 'Trạng thái không hợp lệ.' });
+  const lock = LockService.getScriptLock(); lock.waitLock(10000);
+  try {
+    const sh = SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName(APPROVAL_SHEET);
+    if (!sh) return json_({ error: 'no_sheet', message: 'Chưa có tab ' + APPROVAL_SHEET });
+    const tz = Session.getScriptTimeZone() || 'Asia/Ho_Chi_Minh';
+    const at = Utilities.formatDate(new Date(), tz, 'dd/MM/yyyy HH:mm');
+    const pageName = { ksb: 'Fanpage KSB', dc: 'Fanpage KCN Đất Cuốc' }[p.page] || p.page;
+    const row = [pageName, String(p.date || ''), String(p.stt || ''), String(p.title || ''), p.status, at, '', p.key];
+    const last = sh.getLastRow();
+    const keys = last > 4 ? sh.getRange(5, 8, last - 4, 1).getDisplayValues().map(function (r) { return r[0]; }) : [];
+    const i = keys.indexOf(p.key);
+    if (i >= 0) {
+      const note = sh.getRange(5 + i, 7).getValue(); row[6] = note;
+      sh.getRange(5 + i, 1, 1, 8).setNumberFormat('@').setValues([row]);
+    } else {
+      sh.getRange(last < 4 ? 5 : last + 1, 1, 1, 8).setNumberFormat('@').setValues([row]);
+    }
+    return json_({ ok: true, at: at });
+  } finally { lock.releaseLock(); }
+}
+
 /** Bỏ ô trống ở cuối mỗi dòng và các dòng trống ở cuối bảng. */
 function trim_(rows) {
   const out = rows.map(function (r) {

@@ -103,6 +103,12 @@ function build() {
   m.press = table(G('Theo dõi báo chí'), r => cell(r, 0) === 'STT' && cell(r, 1) === 'Ngày đăng', 0, false).filter(x => x['Báo / tạp chí'] || x['Tiêu đề']).map(x => ({ ...x, date: dmy(x['Ngày đăng']) }));
   m.risks = table(G('Rủi ro truyền thông'), r => cell(r, 0) === 'STT' && cell(r, 2) === 'Rủi ro').filter(x => x['Rủi ro']).map(x => { const k = num(x['Khả năng (1–5)']), s = num(x['Mức độ (1–5)']); return { ...x, k, s, score: num(x['Điểm']) || k * s }; });
   m.acts = table(G('Hoạt động dự kiến'), r => cell(r, 0) === 'STT' && cell(r, 3) === 'Hoạt động').filter(x => x['Hoạt động']).map(x => ({ ...x, w: when(x['Thời gian dự kiến']), budget: num(x['Ngân sách dự kiến (VNĐ)']) }));
+  // lịch bài fanpage: gộp mọi tab "Lịch bài KSB …" / "Lịch bài Đất Cuốc …"
+  const tabsLike = pre => Object.keys(S).filter(n => n.startsWith(pre));
+  const posts = (pre, page) => tabsLike(pre).flatMap(n => table(G(n), r => cell(r, 0) === 'STT' && cell(r, 1) === 'Ngày đăng').filter(x => /^\d+$/.test(x.STT) && dmy(x['Ngày đăng'])).map(x => ({ ...x, page, date: dmy(x['Ngày đăng']), key: `${page}|${x['Ngày đăng']}|${x.STT}` }))).sort((a, b) => a.date - b.date);
+  m.content = { ksb: posts('Lịch bài KSB', 'ksb'), dc: posts('Lịch bài Đất Cuốc', 'dc') };
+  m.approvals = {};
+  table(G('Duyệt nội dung'), r => cell(r, 0) === 'Page' && cell(r, 1) === 'Ngày đăng').forEach(x => { if (x['Khóa']) m.approvals[x['Khóa']] = { st: x['Trạng thái duyệt'], at: x['Cập nhật lúc'], note: x['Ghi chú'] }; });
   m.unlocked = !!LOCK.pw && Object.keys(SP).length > 0;
   M = m;
 }
@@ -220,6 +226,7 @@ const GMETA = {
   'su-kien': { c: '#c98a00', icon: 'event', img: 'gala-dong-tam', pos: 'center 40%' },
   'rui-ro': { c: '#6a4fb3', icon: 'risk', img: 'mo-xe-2', pos: 'center 55%' },
   'hoat-dong': { c: '#1a7f4b', icon: 'act', img: 'pn-hoa', pos: 'center 35%' },
+  'noi-dung': { c: '#be185d', icon: 'news', img: 'kcn-cong', pos: 'center 40%' },
   'ngan-sach': { c: '#0f766e', icon: 'lock', img: 'kcn-phoi-canh', pos: 'center 45%' }
 };
 const SUB = {
@@ -227,6 +234,7 @@ const SUB = {
   'truyen-thong/bao-chi': ['news', 'gala-mc'], 'truyen-thong/tai-tro': ['money', 'gala-khach'], 'truyen-thong/su-kien-ben-ngoai': ['event', 'kcn-phoi-canh'], 'truyen-thong/doi-noi': ['users', 'pn-tap-the'], 'truyen-thong/kenh-so': ['channel', 'kcn-phoi-canh'],
   'su-kien/noi-bo': ['users', 'pn-nhom'], 'su-kien/doi-ngoai': ['comm', 'gala-mc'], 'su-kien/co-dong': ['chart', 'gala-khach'], 'su-kien/ky-niem': ['event', 'gala-ky-niem'], 'su-kien/le-tet': ['event', 'pn-hoa'],
   'rui-ro/thuong-hieu': ['brand', 'kcn-cong'], 'rui-ro/lanh-dao': ['users', 'pn-phat-bieu'], 'rui-ro/hdsx': ['layers', 'mo-xe-1'], 'rui-ro/tai-chinh': ['money', 'mo-xe-2'],
+  'noi-dung/ksb': ['brand', 'pn-tap-the'], 'noi-dung/dat-cuoc': ['channel', 'kcn-cong'],
   'ngan-sach/doi-ngoai': ['news', 'gala-mc'], 'ngan-sach/noi-bo': ['users', 'pn-tap-the'],
   'hoat-dong/hoi': ['users', 'pn-tap-the-2'], 'hoat-dong/esg': ['act', 'kcn-phoi-canh'], 'hoat-dong/csr': ['heart', 'pn-tang-cay']
 };
@@ -316,13 +324,15 @@ const NAV = [
     { gt: 'Truyền thông đối ngoại', items: [{ id: 'truyen-thong/bao-chi', t: 'Báo chí', s: 'Hợp đồng, đối tác, bài đăng', sub: 1 }, { id: 'truyen-thong/tai-tro', t: 'Tài trợ', s: 'Lịch sử chi và tiêu chí chọn', sub: 1 }, { id: 'truyen-thong/su-kien-ben-ngoai', t: 'Chương trình sự kiện bên ngoài', s: 'Xúc tiến đầu tư, sự kiện đối tác', sub: 1 }] },
     { gt: 'Truyền thông đối nội', items: [{ id: 'truyen-thong/doi-noi', t: 'Truyền thông đối nội', s: 'Nội dung văn hóa, sự kiện, đề cử nhân vật' }] },
     { gt: 'Kênh truyền thông số', items: [{ id: 'truyen-thong/kenh-so', t: 'Kênh truyền thông số', s: 'Website, fanpage KSB và Đất Cuốc, YouTube' }] }] },
-  { id: 'su-kien', n: '03', t: 'Sự kiện', d: 'Lịch sự kiện 2027 của KSB: kỷ niệm, cổ đông, báo chí và nội bộ.', groups: [
+  { id: 'noi-dung', n: '03', t: 'Nội dung', d: 'Lịch bài fanpage KSB và KCN Đất Cuốc theo tháng. Lãnh đạo bấm Duyệt hoặc Cần sửa ngay trên lịch.', groups: [
+    { items: [{ id: 'noi-dung/ksb', t: 'Fanpage KSB', s: 'Lịch bài theo tháng, duyệt từng bài', page: 'ksb' }, { id: 'noi-dung/dat-cuoc', t: 'Fanpage KCN Đất Cuốc', s: 'Lịch bài theo tháng, duyệt từng bài', page: 'dc' }] }] },
+  { id: 'su-kien', n: '04', t: 'Sự kiện', d: 'Lịch sự kiện 2027 của KSB: kỷ niệm, cổ đông, báo chí và nội bộ.', groups: [
     { items: [{ id: 'su-kien/noi-bo', t: 'Sự kiện nội bộ', s: 'Gắn kết CBNV, đào tạo, vinh danh', types: ['Nội bộ'] }, { id: 'su-kien/doi-ngoai', t: 'Sự kiện đối ngoại', s: 'Báo chí, đối tác, xúc tiến đầu tư', types: ['Báo chí', 'Bên ngoài'] }, { id: 'su-kien/co-dong', t: 'Sự kiện cổ đông', s: 'ĐHĐCĐ, mốc công bố thông tin', types: ['Cổ đông'] }, { id: 'su-kien/ky-niem', t: 'Sự kiện kỷ niệm', s: 'Lễ kỷ niệm 35 năm, phim tài liệu 01/2028', types: ['Kỷ niệm'] }] }] },
-  { id: 'rui-ro', n: '04', t: 'Quản trị rủi ro', d: 'Nhận diện rủi ro truyền thông, chấm điểm và kịch bản ứng phó theo bốn nhóm.', groups: [
+  { id: 'rui-ro', n: '05', t: 'Quản trị rủi ro', d: 'Nhận diện rủi ro truyền thông, chấm điểm và kịch bản ứng phó theo bốn nhóm.', groups: [
     { items: [{ id: 'rui-ro/thuong-hieu', t: 'Thương hiệu KSB', s: 'Hình ảnh, ngôn ngữ, số liệu công bố', grp: 'Thương hiệu KSB' }, { id: 'rui-ro/lanh-dao', t: 'Lãnh đạo', s: 'Phát ngôn, nhân sự cấp cao', grp: 'Lãnh đạo' }, { id: 'rui-ro/hdsx', t: 'HĐSX Kinh doanh', s: 'Mỏ, KCN, an toàn, cộng đồng', grp: 'HĐSX Kinh doanh' }, { id: 'rui-ro/tai-chinh', t: 'Tình hình tài chính', s: 'Kết quả kinh doanh, công bố thông tin', grp: 'Tình hình tài chính' }] }] },
-  { id: 'hoat-dong', n: '05', t: 'Hoạt động dự kiến', d: 'Những hoạt động đang đề xuất cho năm 2027 ngoài kế hoạch truyền thông chính.', groups: [
+  { id: 'hoat-dong', n: '06', t: 'Hoạt động dự kiến', d: 'Những hoạt động đang đề xuất cho năm 2027 ngoài kế hoạch truyền thông chính.', groups: [
     { items: [{ id: 'hoat-dong/hoi', t: 'Hỗ trợ công tác hội', s: 'Công đoàn, đoàn thể, hiệp hội', grp: 'Hỗ trợ công tác hội' }, { id: 'hoat-dong/esg', t: 'ESG', s: 'Môi trường, xã hội, quản trị', grp: 'ESG' }, { id: 'hoat-dong/csr', t: 'CSR', s: 'Trách nhiệm với cộng đồng', grp: 'CSR' }] }] },
-  { id: 'ngan-sach', n: '06', t: 'Ngân sách', d: 'Ngân sách 2027 và chi phí 2024–2026. Cần mật khẩu để xem.', lock: 1, groups: [
+  { id: 'ngan-sach', n: '07', t: 'Ngân sách', d: 'Ngân sách 2027 và chi phí 2024–2026. Cần mật khẩu để xem.', lock: 1, groups: [
     { items: [{ id: 'ngan-sach/doi-ngoai', t: 'Chi đối ngoại', s: 'Hợp đồng báo chí, tri ân báo chí, tài trợ' }, { id: 'ngan-sach/noi-bo', t: 'Nội bộ, chiến dịch và hoạt động', s: 'Nội bộ, tri ân, phim 35 năm, sự kiện, hoạt động dự kiến' }] }] }
 ];
 const ALL = NAV.flatMap(n => [{ id: n.id, t: n.t }].concat(n.groups.flatMap(g => g.items)));
@@ -365,7 +375,7 @@ function pHome() {
   const slogan = msgOf('Slogan') || 'KIẾN TẠO GIÁ TRỊ BỀN VỮNG';
   const camp = splitDot(msgOf('Chiến dịch 2027'));
   const chosen = M.series.filter(x => x['Nhân vật (tên thật)']).length;
-  const stat = { 'thuong-hieu': [M.assets.filter(a => isDone(a['Trạng thái'])).length + '/' + M.assets.length, 'tài sản thương hiệu đã có'], 'truyen-thong': [M.posts.length, 'đầu mục nội dung năm 2027'], 'su-kien': [M.events.length, 'sự kiện trong kế hoạch 2027'], 'rui-ro': [M.risks.length, `rủi ro đã nhận diện, ${hi.length} mức cao`], 'hoat-dong': [M.acts.length, 'hoạt động đang đề xuất'], 'ngan-sach': [M.unlocked ? fVND(M.grand) : 'Khóa', M.unlocked ? 'ngân sách 2027' : 'cần mật khẩu để xem'] };
+  const stat = { 'thuong-hieu': [M.assets.filter(a => isDone(a['Trạng thái'])).length + '/' + M.assets.length, 'tài sản thương hiệu đã có'], 'truyen-thong': [M.posts.length, 'đầu mục nội dung năm 2027'], 'su-kien': [M.events.length, 'sự kiện trong kế hoạch 2027'], 'rui-ro': [M.risks.length, `rủi ro đã nhận diện, ${hi.length} mức cao`], 'hoat-dong': [M.acts.length, 'hoạt động đang đề xuất'], 'noi-dung': [M.content.ksb.length + M.content.dc.length, `bài fanpage, ${Object.values(M.approvals).filter(a => a.st === 'Đã duyệt').length} đã duyệt`], 'ngan-sach': [M.unlocked ? fVND(M.grand) : 'Khóa', M.unlocked ? 'ngân sách 2027' : 'cần mật khẩu để xem'] };
   const tiles = NAV.map(n => `<a class="tile pic" href="#/${n.id}" style="--c:${gColor(n.id)}"><div class="im" style="--img:url('${IMG(gImg(n.id) + '-sm')}')"><div class="ico">${ic(gIcon(n.id))}</div></div><div class="bd"><div class="k">${n.n}</div><h3>${n.t}</h3><p>${n.d}</p><div class="st"><b>${stat[n.id][0]}</b><span>${stat[n.id][1]}</span></div></div></a>`).join('');
   const assetsOk = M.assets.filter(a => isDone(a['Trạng thái'])).length, revDone = M.review.length - open.length, evDated = M.events.filter(e => e.w && e.w.exact).length;
   const html = `<section class="hero" style="--img:url('${IMG('kcn-phoi-canh')}')"><div class="wrap">
@@ -379,7 +389,7 @@ function pHome() {
       <div><b>${hi.length}<small>/ ${M.risks.length}</small></b><span>Rủi ro mức cao (điểm ≥ 15)</span></div>
       <div><b>${open.length}<small>/ ${M.review.length}</small></b><span>Việc rà soát chưa xử lý</span></div>
     </div><div class="badge"><b>01/2028</b>Kỷ niệm 35 năm KSB · còn ${Math.max(0, days(today(), new Date(CFG.MILESTONES.anniversary || '2028-01-01')))} ngày</div></div></section>
-  ${sec('01', 'Sáu mảng công việc', `<div class="tiles six">${tiles}</div>`)}
+  ${sec('01', 'Bảy mảng công việc', `<div class="tiles seven">${tiles}</div>`)}
   ${sec('02', 'Tiến độ chính', `<div class="gauges">${gauge('g1', assetsOk, M.assets.length, 'Tài sản thương hiệu đã có', `${assetsOk}/${M.assets.length} hạng mục`)}${gauge('g2', revDone, M.review.length, 'Việc rà soát đã xử lý', `${revDone}/${M.review.length} việc`)}${gauge('g3', chosen, M.series.length, 'Nhân vật Người KSB đã chốt', `${chosen}/${M.series.length} số`)}${gauge('g4', evDated, M.events.length, 'Sự kiện 2027 đã có ngày', `${evDated}/${M.events.length} sự kiện`)}</div>`)}
   ${sec('03', 'Điều cần quyết và hạn sắp tới', `<div class="grid g2">
     ${box('Cần lãnh đạo quyết định', `${dec.length} mục, tự lọc từ Sheet`, dec.length ? `<div class="list">${dec.map((d, i) => `<div class="li">${d.d ? dbox(d.d) : `<div class="d"><b>${pad(i + 1)}</b><span>mục</span></div>`}<div><div class="t">${esc(d.t)}</div><div class="s">${esc(d.s)}</div></div><span class="chip">${esc(d.src)}</span></div>`).join('')}</div>` : empty('Không có mục chờ quyết định'))}
@@ -544,6 +554,105 @@ function pInternal() {
   ${sec('01', 'Nhịp nội dung nội bộ trong năm', `<div class="grid g64">${box('Số đầu mục theo tháng và kênh', 'Trụ cột Nội bộ & văn hóa', canvas('c-in', 'lg'), 'Lịch nội dung 2027')}${box('Việc còn thiếu', '', reviewList(reviewItems(/nội bộ|nhân vật|đào tạo/i)), 'Rà soát 2027')}</div>`)}
   ${sec('02', 'Sự kiện nội bộ', `<div class="grid g2">${box('Sự kiện nội bộ 2027', '', eventList(evs), 'Sự kiện 2027')}${lockCard('Ngân sách nội bộ và tri ân theo quý')}</div>`)}`;
   const after = () => barChart('c-in', MON, chs.map(c => ({ label: c, data: MON.map((_, i) => ip.filter(p => p.date && p.date.getMonth() === i && p['Kênh'] === c).length) })), { stacked: true });
+  return { html, after };
+}
+
+/* =========================================================
+   03 · NỘI DUNG (lịch bài fanpage, duyệt từng bài)
+   ========================================================= */
+const APPROVE_LOCAL_KEY = 'ksb-content-approvals-local';
+let APPROVE_LOCAL = (() => { try { return JSON.parse(localStorage.getItem(APPROVE_LOCAL_KEY) || '{}') || {}; } catch (_) { return {}; } })();
+const PAGE_NAME = { ksb: 'Fanpage KSB', dc: 'Fanpage KCN Đất Cuốc' };
+const apprOf = k => (APPROVE_LOCAL[k] && !CFG.APPS_SCRIPT_URL ? APPROVE_LOCAL[k] : M.approvals[k]) || {};
+const PILLAR_C = ['#0d4f9b', '#e3242b', '#1a7f4b', '#c98a00', '#6a4fb3', '#0f766e', '#be185d', '#5b8fd1', '#8a5d00'];
+const pillarColor = (() => { const m = {}; return t => (m[t] = m[t] || PILLAR_C[Object.keys(m).length % PILLAR_C.length]); })();
+function docLink(post) {
+  const D = (window.KSB_CONTENT_DOCS || {})[post.page]; if (!D) return '';
+  const tab = D.tabs && D.tabs[fDM(post.date)];
+  return `https://docs.google.com/document/d/${D.id}/edit${tab ? `?tab=${tab}` : ''}`;
+}
+const mKey = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}`;
+const OPEN_MONTHS = {};
+function postCard(p) {
+  const a = apprOf(p.key), st = a.st || '';
+  const cls = st === 'Đã duyệt' ? 'ok' : st === 'Cần sửa' ? 'fix' : '';
+  const link = docLink(p), D = (window.KSB_CONTENT_DOCS || {})[p.page] || {}, hasTab = D.tabs && D.tabs[fDM(p.date)];
+  return `<div class="cpost ${cls}" style="--pc:${pillarColor(p['Trụ cột'])}">
+    <div class="cp-m"><span>${esc(p['Trụ cột'])}</span><span>${esc(p['Định dạng'])}</span></div>
+    ${link ? `<a class="cp-t" href="${link}" target="_blank" rel="noopener" title="${hasTab ? 'Mở bài trong Google Docs' : 'Bài chưa có tab riêng, mở file Docs'}">${esc(p['Tiêu đề / chủ đề'])}${ic('arrow')}</a>` : `<div class="cp-t">${esc(p['Tiêu đề / chủ đề'])}</div>`}
+    <div class="cp-a" data-key="${esc(p.key)}">
+      <button type="button" class="ap ok ${st === 'Đã duyệt' ? 'on' : ''}" data-st="Đã duyệt" title="Đã xem, duyệt và triển khai">${ic('check')}<span>Duyệt</span></button>
+      <button type="button" class="ap fix ${st === 'Cần sửa' ? 'on' : ''}" data-st="Cần sửa" title="Cần sửa: ghi góp ý trong file Docs">${ic('alert')}<span>Cần sửa</span></button>
+    </div>
+    ${st ? `<div class="cp-s">${st === 'Đã duyệt' ? 'Đã duyệt' : 'Cần sửa, xem góp ý trong Docs'}${a.at ? ` · ${esc(a.at)}` : ''}</div>` : `<div class="cp-s muted">${esc(p['Trạng thái'] || 'Chờ duyệt')}${hasTab ? '' : ' · chưa có bài viết'}</div>`}
+  </div>`;
+}
+function monthCal(posts, y, mo, today0) {
+  const first = new Date(y, mo, 1), start = new Date(first); start.setDate(1 - ((first.getDay() + 6) % 7));
+  const last = new Date(y, mo + 1, 0); const end = new Date(last); end.setDate(last.getDate() + (6 - ((last.getDay() + 6) % 7)));
+  let h = `<div class="cal"><div class="cal-h">${['Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy', 'Chủ nhật'].map(d => `<div>${d}</div>`).join('')}</div><div class="cal-g">`;
+  for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+    const inM = d.getMonth() === mo, ps = posts.filter(p => +p.date === +d), isT = +d === +today0;
+    h += `<div class="cday ${inM ? '' : 'out'} ${isT ? 'today' : ''} ${ps.length ? 'has' : ''}"><div class="cd-n"><b>${d.getDate()}</b><span>${['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'][d.getDay()]} ${fDate(d)}</span>${isT ? '<em>Hôm nay</em>' : ''}</div>${inM ? ps.map(postCard).join('') : ''}</div>`;
+  }
+  return h + '</div></div>';
+}
+function contentStats(posts) {
+  const ok = posts.filter(p => apprOf(p.key).st === 'Đã duyệt').length, fix = posts.filter(p => apprOf(p.key).st === 'Cần sửa').length;
+  return { n: posts.length, ok, fix, wait: posts.length - ok - fix };
+}
+const statBar = st => `<div class="cbar"><span class="ok" style="width:${pct(st.ok, st.n)}%"></span><span class="fix" style="width:${pct(st.fix, st.n)}%"></span></div>`;
+function syncNote() {
+  return CFG.APPS_SCRIPT_URL ? `<div class="cnote">${ic('check')}<span>Bấm <b>Duyệt</b> hoặc <b>Cần sửa</b> sẽ lưu vào tab <b>Duyệt nội dung</b> của Sheet; mọi người mở link đều thấy. Cần mật khẩu lãnh đạo khi bấm lần đầu.</span></div>`
+    : `<div class="cnote warn">${ic('alert')}<span>Trang chưa nối với Sheet nên lựa chọn Duyệt / Cần sửa <b>chỉ lưu trên trình duyệt này</b>. Kết nối Apps Script (README mục 2) để lưu chung cho cả nhóm.</span></div>`;
+}
+function bindApprove() {
+  if (bindApprove.done) return; bindApprove.done = true;
+  $('#page').addEventListener('click', async e => {
+    const b = e.target.closest('.ap'); if (!b) return;
+    const box = b.closest('.cp-a'), key = box.dataset.key, cur = apprOf(key).st || '';
+    const st = cur === b.dataset.st ? '' : b.dataset.st;
+    const post = M.content.ksb.concat(M.content.dc).find(p => p.key === key); if (!post) return;
+    const now = new Date(), at = `${fDate(now)} ${pad(now.getHours())}:${pad(now.getMinutes())}`;
+    if (!CFG.APPS_SCRIPT_URL) {
+      if (st) APPROVE_LOCAL[key] = { st, at }; else APPROVE_LOCAL[key] = { st: '', at };
+      try { localStorage.setItem(APPROVE_LOCAL_KEY, JSON.stringify(APPROVE_LOCAL)); } catch (_) { }
+      render(true); return;
+    }
+    let pw = LOCK.pw;
+    if (!pw) { pw = window.prompt('Nhập mật khẩu lãnh đạo để lưu lựa chọn duyệt:'); if (!pw) return; }
+    box.classList.add('busy');
+    try {
+      const res = await fetch(CFG.APPS_SCRIPT_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ token: CFG.TOKEN || '', pw, action: 'approve', page: post.page, date: post['Ngày đăng'], stt: post.STT, title: post['Tiêu đề / chủ đề'], status: st, key }) });
+      const data = await res.json(); if (data.error) throw new Error(data.message || data.error);
+      if (!LOCK.pw) { try { await unlock(pw); } catch (_) { } }
+      M.approvals[key] = { st, at: data.at || at }; await load(false); render(true);
+    } catch (err) { box.classList.remove('busy'); alert('Chưa lưu được: ' + err.message); }
+  });
+}
+function pContentHub() {
+  const pages = itemsOf('noi-dung'); const all = M.content.ksb.concat(M.content.dc); const S0 = contentStats(all); const t0 = today();
+  const next = all.filter(p => p.date >= t0).slice(0, 8);
+  const html = `${head({ crumb: [{ t: 'Nội dung' }], title: '<b>Nội dung</b> fanpage', lead: 'Lịch bài của fanpage KSB và KCN Đất Cuốc theo tháng. Bấm tiêu đề để mở bài trong Google Docs; bấm Duyệt hoặc Cần sửa ngay dưới mỗi bài.', figs: [fig(S0.n, 'bài trong lịch'), fig(S0.ok, 'bài đã duyệt', '', 'check'), fig(S0.fix, 'bài cần sửa', 'alert'), fig(S0.wait, 'bài chờ duyệt', '', 'clock')] })}
+  ${sec('01', 'Hai fanpage', `<div class="grid g2">${pages.map(i => { const ps = M.content[i.page]; const st = contentStats(ps); return `<a class="cpage" href="#/${i.id}" style="--c:${i.page === 'ksb' ? '#0d4f9b' : '#e3242b'}"><div class="cpg-h"><span class="mi" style="--mc:${i.page === 'ksb' ? '#0d4f9b' : '#e3242b'}">${ic(i.page === 'ksb' ? 'brand' : 'channel')}</span><div><b>${esc(i.t)}</b><span>${ps.length} bài · ${ps.length ? `${fDM(ps[0].date)} – ${fDate(ps[ps.length - 1].date)}` : 'chưa có lịch'}</span></div><em>Mở lịch →</em></div>${statBar(st)}<div class="cpg-s"><span class="ok">${st.ok} đã duyệt</span><span class="fix">${st.fix} cần sửa</span><span>${st.wait} chờ duyệt</span></div></a>`; }).join('')}</div>${syncNote()}`)}
+  ${sec('02', 'Bài sắp đăng', box('', `${next.length} bài gần nhất, cả hai page`, next.length ? `<div class="list">${next.map(p => `<div class="li">${dbox(p.date)}<div><div class="t">${docLink(p) ? `<a href="${docLink(p)}" target="_blank" rel="noopener">${esc(p['Tiêu đề / chủ đề'])}</a>` : esc(p['Tiêu đề / chủ đề'])}</div><div class="s">${PAGE_NAME[p.page]} · ${esc(p['Trụ cột'])} · ${esc(p['Định dạng'])}</div></div>${apprOf(p.key).st ? tag(apprOf(p.key).st === 'Đã duyệt' ? 'Đã duyệt' : 'Chưa xong: cần sửa') : `<span class="tag">Chờ duyệt</span>`}</div>`).join('')}</div>` : empty('Không có bài sắp đăng'), 'Lịch bài KSB · Lịch bài Đất Cuốc'))}`;
+  return { html };
+}
+function pContentPage(item) {
+  const ps = M.content[item.page] || []; const st = contentStats(ps); const t0 = today(); const D = (window.KSB_CONTENT_DOCS || {})[item.page] || {};
+  const months = [...new Set(ps.map(p => mKey(p.date)))].sort();
+  const curKey = mKey(t0); const defOpen = months.includes(curKey) ? curKey : (months.find(k => k >= curKey) || months[months.length - 1]);
+  const openSet = OPEN_MONTHS[item.page] = OPEN_MONTHS[item.page] || new Set([defOpen]);
+  const tabs = tabsOf([{ id: 'noi-dung', t: 'Tổng quan' }].concat(itemsOf('noi-dung')), item.id);
+  const html = `${head({ crumb: [{ id: 'noi-dung', t: 'Nội dung' }, { t: item.t }], title: `Nội dung · <b>${esc(item.t)}</b>`, lead: `Mỗi ô là một ngày đăng. Bấm tiêu đề để mở bài trong <a href="https://docs.google.com/document/d/${D.id}/edit" target="_blank" rel="noopener" style="color:#fff;text-decoration:underline">${esc(D.title || 'Google Docs')}</a>; ghi góp ý chi tiết ngay trong file Docs.`, tabs, figs: [fig(st.n, 'bài trong lịch'), fig(st.ok, 'đã duyệt, triển khai', '', 'check'), fig(st.fix, 'cần sửa', 'alert'), fig(st.wait, 'chờ duyệt', '', 'clock')] })}
+  <section class="sec"><div class="wrap">${syncNote()}
+    <div class="clegend"><span><i class="ok"></i>Đã duyệt: đã xem, triển khai</span><span><i class="fix"></i>Cần sửa: xem góp ý trong Docs</span><span><i></i>Chờ duyệt</span><span class="sp">Bấm lại nút đang chọn để bỏ chọn</span></div>
+    ${months.map(k => { const [yy, mm] = k.split('-').map(Number); const mp = ps.filter(p => mKey(p.date) === k); const ms = contentStats(mp); return `<details class="cmon" data-m="${k}" ${openSet.has(k) ? 'open' : ''}><summary><span class="cm-t">Tháng ${mm}/${yy}</span>${k === curKey ? '<em>Tháng này</em>' : ''}<span class="cm-n">${mp.length} bài</span>${statBar(ms)}<span class="cm-s"><b class="ok">${ms.ok}</b> duyệt · <b class="fix">${ms.fix}</b> cần sửa · ${ms.wait} chờ</span><span class="cm-x">${ic('arrow')}</span></summary>${monthCal(mp, yy, mm - 1, t0)}</details>`; }).join('') || empty('Chưa có lịch bài', 'Thêm tab "Lịch bài …" trong Sheet')}
+  </div></section>`;
+  const after = () => {
+    bindApprove();
+    document.querySelectorAll('.cmon').forEach(d => d.addEventListener('toggle', () => { if (d.open) openSet.add(d.dataset.m); else openSet.delete(d.dataset.m); }));
+  };
   return { html, after };
 }
 
@@ -874,10 +983,11 @@ const ROUTES = {
   'thuong-hieu': pBrandHub, 'thuong-hieu/cong-ty': pBrandCompany, 'thuong-hieu/ca-nhan': pBrandPersonal,
   'truyen-thong': pCommHub, 'truyen-thong/bao-chi': pPress, 'truyen-thong/tai-tro': pSponsor, 'truyen-thong/su-kien-ben-ngoai': pExternalEvents, 'truyen-thong/doi-noi': pInternal,
   'su-kien': pEventsHub, 'su-kien/ky-niem': pAnniversary, 'su-kien/co-dong': pAGM, 'su-kien/noi-bo': () => pEventType(itemsOf('su-kien')[0]), 'su-kien/doi-ngoai': () => pEventType(itemsOf('su-kien')[1]), 'su-kien/le-tet': pHolidays, 'truyen-thong/kenh-so': pChannels,
-  'rui-ro': pRiskHub, 'hoat-dong': pActHub,
+  'rui-ro': pRiskHub, 'hoat-dong': pActHub, 'noi-dung': pContentHub,
   'ngan-sach': guard(pBudgetHub), 'ngan-sach/doi-ngoai': guard(pBudgetExt), 'ngan-sach/noi-bo': guard(pBudgetInt)
 };
 itemsOf('rui-ro').forEach(i => ROUTES[i.id] = () => pRiskGroup(i));
+itemsOf('noi-dung').forEach(i => ROUTES[i.id] = () => pContentPage(i));
 itemsOf('hoat-dong').forEach(i => ROUTES[i.id] = () => pActGroup(i));
 const ORDER = [''].concat(NAV.flatMap(n => [n.id].concat(n.groups.flatMap(g => g.items.map(i => i.id)))));
 const curId = () => { const h = location.hash.replace(/^#\/?/, ''); return h in ROUTES ? h : ''; };

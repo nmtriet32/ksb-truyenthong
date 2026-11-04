@@ -63,6 +63,7 @@ Trang chủ tổng hợp từ mọi tab. Mỗi menu chính có một trang tổn
 | 03 Sự kiện | Nội bộ · Đối ngoại · Cổ đông · Kỷ niệm (lọc theo cột Loại); trang Lễ, Tết mở từ trang tổng quan | Sự kiện 2027, Phim 35 năm, Ngày lễ 2027, Lịch nội dung 2027 |
 | 04 Quản trị rủi ro | Thương hiệu KSB · Lãnh đạo · HĐSX Kinh doanh · Tình hình tài chính | Rủi ro truyền thông, Rà soát 2027, Ngày lễ 2027 |
 | 05 Hoạt động dự kiến | Hỗ trợ công tác hội · ESG · CSR | Hoạt động dự kiến, Lịch nội dung 2027 |
+| Nội dung | Fanpage KSB · Fanpage KCN Đất Cuốc: lịch theo tháng, nút Duyệt / Cần sửa từng bài | Mọi tab bắt đầu bằng "Lịch bài KSB" / "Lịch bài Đất Cuốc", tab Duyệt nội dung; link bài trong data/content-docs.js |
 | 06 Ngân sách (cần mật khẩu) | Tổng quan · Chi đối ngoại · Nội bộ, chiến dịch và hoạt động | NS …, CP …, cột ngân sách của Sự kiện 2027 và Hoạt động dự kiến |
 
 Sáu tab mới được thêm vào Sheet cho các menu này: **Thương hiệu công ty, Thương hiệu cá nhân, Sự kiện 2027,
@@ -113,3 +114,12 @@ KSB-Dashboard/
 
 Lưu ý: repo công khai nên ai có link đều xem được các mục 01–05 (không có số tiền). Mục 06 cần mật khẩu.
 Không bao giờ đưa mật khẩu vào file nào trong thư mục này.
+
+## 8. Menu Nội dung: duyệt bài fanpage
+
+- Lịch đọc mọi tab tên bắt đầu bằng "Lịch bài KSB" hoặc "Lịch bài Đất Cuốc" (thêm tab tháng mới cứ đặt tên theo mẫu đó).
+- Bấm tiêu đề bài: mở đúng tab của bài trong file Docs "Bài đăng fanpage KSB" / "Bài đăng fanpage KCN Đất Cuốc".
+  Bài chưa có tab thì mở đầu file. Danh sách tab nằm trong `data/content-docs.js` (Claude cập nhật khi có bài mới).
+- Nút **Duyệt** / **Cần sửa**: khi đã nối Apps Script, lựa chọn ghi vào tab **Duyệt nội dung** của Sheet, ai mở link cũng thấy;
+  lần bấm đầu hỏi mật khẩu lãnh đạo (cùng mật khẩu mục Ngân sách). Chưa nối Apps Script thì chỉ lưu trên trình duyệt đang dùng.
+- Góp ý chi tiết: ghi comment ngay trong file Docs của bài.

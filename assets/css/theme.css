@@ -341,3 +341,84 @@ body[data-g="ngan-sach"]{--acc:#0f766e;--acc-soft:#e3f3f1}
 .ytbl tr.camp td{color:#0f766e;font-style:italic}
 @media (max-width:960px){.ycards{grid-template-columns:repeat(2,minmax(0,1fr))}.ybar{top:68px}.yb-n{margin-left:0}}
 @media (max-width:480px){.ycards{grid-template-columns:minmax(0,1fr)}}
+
+/* ---------- 03 · Nội dung: lịch bài theo tháng ---------- */
+body[data-g="noi-dung"]{--acc:#be185d;--acc-soft:#fcebf3}
+.tiles.seven{grid-template-columns:repeat(4,minmax(0,1fr))}
+@media (max-width:1120px){.tiles.seven{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:600px){.tiles.seven{grid-template-columns:minmax(0,1fr)}}
+.cnote{display:flex;gap:10px;align-items:flex-start;margin-top:14px;padding:12px 16px;border-radius:12px;background:#effaf3;border:1px solid #cbe6d6;font-size:13px;color:var(--ink)}
+.cnote svg{width:18px;height:18px;stroke:#1a7f4b;flex:0 0 auto;margin-top:1px}
+.cnote.warn{background:#fff8e8;border-color:#f1e0b5}.cnote.warn svg{stroke:#c98a00}
+.clegend{display:flex;flex-wrap:wrap;gap:8px 18px;margin:16px 0 14px;font-size:12.5px;color:var(--ink-2)}
+.clegend i{display:inline-block;width:12px;height:12px;border-radius:4px;margin-right:6px;vertical-align:-1px;background:#e3e8ef}
+.clegend i.ok{background:#1a7f4b}.clegend i.fix{background:#e3242b}
+.clegend .sp{margin-left:auto;color:var(--muted)}
+.cbar{display:flex;height:8px;border-radius:99px;background:#e9edf3;overflow:hidden;min-width:90px}
+.cbar span.ok{background:#1a7f4b}.cbar span.fix{background:#e3242b}
+.cpage{display:block;padding:20px 22px;border-radius:16px;background:#fff;border:1px solid #e8ecf2;border-top:4px solid var(--c);text-decoration:none;color:var(--ink);box-shadow:0 1px 2px rgba(10,34,70,.04),0 8px 24px -14px rgba(10,34,70,.16)}
+.cpage:hover{border-color:var(--c)}
+.cpg-h{display:flex;gap:12px;align-items:center;margin-bottom:14px}
+.cpg-h b{display:block;font-size:17px;color:var(--navy)}.cpg-h div span{font-size:12.5px;color:var(--muted)}
+.cpg-h em{margin-left:auto;font-style:normal;font-weight:600;font-size:13px;color:var(--c)}
+.cpg-s{display:flex;gap:14px;margin-top:10px;font-size:12.5px;color:var(--ink-2)}
+.cpg-s .ok{color:#1a7f4b;font-weight:600}.cpg-s .fix{color:#c41a21;font-weight:600}
+.cmon{margin-top:12px;border-radius:16px;background:#fff;border:1px solid #e8ecf2;box-shadow:0 1px 2px rgba(10,34,70,.04),0 8px 24px -16px rgba(10,34,70,.16);overflow:hidden}
+.cmon>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:14px;padding:16px 20px;flex-wrap:wrap}
+.cmon>summary::-webkit-details-marker{display:none}
+.cm-t{font-size:18px;font-weight:700;color:var(--navy)}
+.cmon>summary em{font-style:normal;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#fff;background:#be185d;border-radius:99px;padding:3px 9px}
+.cm-n{font-size:13px;color:var(--ink-2)}
+.cmon>summary .cbar{width:160px}
+.cm-s{font-size:12.5px;color:var(--ink-2)}.cm-s .ok{color:#1a7f4b}.cm-s .fix{color:#c41a21}
+.cm-x{margin-left:auto;display:flex}.cm-x svg{width:20px;height:20px;stroke:var(--muted);transform:rotate(90deg);transition:transform .2s}
+.cmon[open] .cm-x svg{transform:rotate(-90deg)}
+.cmon[open]>summary{border-bottom:1px solid #eef1f5;background:#fbfcfe}
+.cal{padding:12px}
+.cal-h,.cal-g{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px}
+.cal-h div{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);padding:4px 8px}
+.cday{min-height:108px;border-radius:10px;background:#f7f9fc;border:1px solid #eef1f5;padding:7px;display:flex;flex-direction:column;gap:6px;min-width:0}
+.cday.out{background:transparent;border-style:dashed;opacity:.45}
+.cday.has{background:#fff;border-color:#dfe6ef}
+.cday.today{border:2px solid #be185d}
+.cd-n{display:flex;align-items:baseline;gap:6px}
+.cd-n b{font-size:15px;color:var(--navy)}
+.cd-n span{display:none}
+.cd-n em{font-style:normal;font-size:10px;font-weight:700;color:#be185d;margin-left:auto}
+.cpost{border-radius:9px;background:#fff;border:1px solid #e3e8ef;border-left:4px solid var(--pc);padding:8px 9px;display:flex;flex-direction:column;gap:6px;box-shadow:0 1px 2px rgba(10,34,70,.05)}
+.cpost.ok{background:#f1f9f4;border-color:#bfe1cc;border-left-color:#1a7f4b}
+.cpost.fix{background:#fdf2f2;border-color:#f3c7c9;border-left-color:#e3242b}
+.cp-m{display:flex;flex-wrap:wrap;gap:4px}
+.cp-m span{font-size:9.5px;font-weight:700;letter-spacing:.03em;text-transform:uppercase;color:var(--pc);background:color-mix(in srgb,var(--pc) 10%,#fff);border-radius:4px;padding:1px 5px}
+.cp-m span+span{color:var(--muted);background:#f1f4f8}
+.cp-t{font-size:12.5px;font-weight:600;line-height:1.35;color:var(--navy);text-decoration:none;overflow-wrap:anywhere}
+a.cp-t:hover{color:#be185d;text-decoration:underline}
+a.cp-t svg{width:12px;height:12px;stroke:currentColor;margin-left:4px;vertical-align:-1px;transform:rotate(-45deg)}
+.cp-a{display:flex;gap:5px}
+.cp-a.busy{opacity:.5;pointer-events:none}
+.ap{flex:1;display:inline-flex;align-items:center;justify-content:center;gap:4px;height:28px;border-radius:7px;border:1.5px solid #d5dde8;background:#fff;font:inherit;font-size:11.5px;font-weight:700;color:var(--ink-2);cursor:pointer;padding:0 4px;min-width:0}
+.ap svg{width:14px;height:14px;stroke:currentColor;flex:0 0 auto}
+.ap.ok:hover{border-color:#1a7f4b;color:#1a7f4b}.ap.fix:hover{border-color:#e3242b;color:#c41a21}
+.ap.ok.on{background:#1a7f4b;border-color:#1a7f4b;color:#fff}
+.ap.fix.on{background:#e3242b;border-color:#e3242b;color:#fff}
+.cp-s{font-size:10.5px;font-weight:600;color:#145f39}
+.cpost.fix .cp-s{color:#a2252b}
+.cp-s.muted{color:var(--muted);font-weight:500}
+@media (max-width:1280px){.ap span{display:none}}
+@media (max-width:860px){
+  .cal-h{display:none}.cal-g{grid-template-columns:minmax(0,1fr)}
+  .cday{min-height:0}.cday:not(.has){display:none}
+  .cd-n span{display:inline;font-size:12px;color:var(--muted)}
+  .ap span{display:inline}.cmon>summary .cbar{width:100%;order:5}
+  .clegend .sp{margin-left:0}
+}
+/* 7 menu: thu gọn để không chạm nhóm nút */
+.menu>li>a{padding:0 8px;font-size:13.5px}
+.menu>li>a::after{display:none}
+.hdr .wrap{gap:10px}
+@media (max-width:1180px){.menu>li>a{padding:0 6px;font-size:12.5px}}
+@media (min-width:961px) and (max-width:1020px){.menu>li>a{padding:0 4px;font-size:12px}.hdr .wrap{gap:6px}}
+.ap{white-space:nowrap}
+@media (max-width:1280px){.ap span{display:inline}}
+@media (max-width:1680px){.ap svg{display:none}}
+@media (max-width:860px){.ap svg{display:inline}}

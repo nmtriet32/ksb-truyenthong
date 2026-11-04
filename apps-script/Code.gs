@@ -3,12 +3,12 @@
  *
  * Cách dùng (làm 1 lần, khoảng 5 phút) – xem README.md mục 2:
  *   1. Mở Sheet → Tiện ích mở rộng → Apps Script → dán toàn bộ file này vào Code.gs.
- *   2. Đặt TOKEN bên dưới thành một chuỗi bất kỳ (ví dụ: ksb-2027-x7Qp).
- *   3. Đặt mật khẩu mục Ngân sách: chọn hàm datMatKhauNganSach → Chạy (sửa mật khẩu trong hàm trước khi chạy).
- *      Mật khẩu được lưu trong Script Properties, KHÔNG nằm trong code hay trên GitHub.
+ *   2. TOKEN để trống (dữ liệu công khai vốn đã công khai trên GitHub).
+ *   3. Đặt mật khẩu lãnh đạo (mục Ngân sách và nút Duyệt): Cài đặt dự án → Thuộc tính tập lệnh → thêm
+ *      BUDGET_PASSWORD = <mật khẩu>. Mật khẩu chỉ nằm ở đó, KHÔNG nằm trong code hay trên GitHub.
  *   4. Triển khai → Tùy chọn triển khai mới → Ứng dụng web
  *        Thực thi dưới dạng: Tôi | Người có quyền truy cập: Bất kỳ ai
- *   5. Sao chép URL /exec, dán vào assets/js/config.js (APPS_SCRIPT_URL) cùng TOKEN.
+ *   5. Sao chép URL /exec, dán vào assets/js/config.js (APPS_SCRIPT_URL).
  *
  * Dữ liệu trả ra trang chia hai lớp:
  *   - Công khai: mọi tab, trừ tab NS… và CP…; cột/mục ngân sách trong các tab khác bị xóa trắng.
@@ -16,7 +16,7 @@
  */
 
 const SPREADSHEET_ID = '1qX3GrI2wOGJoLNst-PwfANLG6QQKoHtFkR08Sf9uc4U';
-const TOKEN = 'DOI-CHUOI-NAY';   // đổi thành chuỗi của anh, giống trong config.js
+const TOKEN = '';   // để trống: lớp công khai vốn đã công khai trên GitHub; ngân sách và nút duyệt được bảo vệ bằng mật khẩu lãnh đạo
 
 // Các tab KHÔNG gửi ra trang trong bất kỳ trường hợp nào.
 const SKIP_SHEETS = [];
@@ -103,7 +103,7 @@ function datMatKhauNganSach() {
   Logger.log('Đã lưu mật khẩu mục Ngân sách.');
 }
 
-/** Lãnh đạo bấm Duyệt / Cần sửa trên trang Nội dung → ghi vào tab "Duyệt nội dung". Cần TOKEN và mật khẩu lãnh đạo. */
+/** Lãnh đạo bấm Duyệt / Cần sửa trên trang Nội dung → ghi vào tab "Duyệt nội dung". Cần mật khẩu lãnh đạo. */
 const APPROVAL_SHEET = 'Duyệt nội dung';
 const APPROVAL_STATES = ['', 'Đã duyệt', 'Cần sửa'];
 function doPost(e) {

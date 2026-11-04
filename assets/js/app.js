@@ -125,9 +125,9 @@ function apply(payload, source) {
 }
 async function fetchLive(pw) {
   if (!CFG.APPS_SCRIPT_URL) throw new Error('Chưa cấu hình APPS_SCRIPT_URL');
-  const u = CFG.APPS_SCRIPT_URL + (CFG.APPS_SCRIPT_URL.includes('?') ? '&' : '?') + 'token=' + encodeURIComponent(CFG.TOKEN || '') + (pw ? '&pw=' + encodeURIComponent(pw) : '') + '&t=' + Date.now();
+  const u = CFG.APPS_SCRIPT_URL + (CFG.APPS_SCRIPT_URL.includes('?') ? '&' : '?') + 'token=' + encodeURIComponent(CFG.TOKEN || '') + '&t=' + Date.now();
   const ctl = new AbortController(); const to = setTimeout(() => ctl.abort(), 20000);
-  try { const res = await fetch(u, { signal: ctl.signal, redirect: 'follow' }); if (!res.ok) throw new Error('HTTP ' + res.status); const data = await res.json(); if (data.error) { const er = new Error(data.message || data.error); er.code = data.error; throw er; } if (!data.sheets) throw new Error('Dữ liệu trả về không đúng định dạng'); return data; }
+  try { const res = pw ? await fetch(CFG.APPS_SCRIPT_URL, { method: 'POST', signal: ctl.signal, redirect: 'follow', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ action: 'data', token: CFG.TOKEN || '', pw }) }) : await fetch(u, { signal: ctl.signal, redirect: 'follow' }); if (!res.ok) throw new Error('HTTP ' + res.status); const data = await res.json(); if (data.error) { const er = new Error(data.message || data.error); er.code = data.error; throw er; } if (!data.sheets) throw new Error('Dữ liệu trả về không đúng định dạng'); return data; }
   finally { clearTimeout(to); }
 }
 async function load(first) {

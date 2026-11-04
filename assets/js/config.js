@@ -4,9 +4,9 @@
    ========================================================= */
 window.KSB_CONFIG = {
   // URL ứng dụng web Apps Script (kết thúc bằng /exec). Để trống = dùng bản chụp dự phòng.
-  APPS_SCRIPT_URL: '',
+  APPS_SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbz-b2bM3DaGqjBG3h_YVv9p_BA6-LE6doOWT64qmQ1cEh2aY_TaHWTzryvdFT2Ri0-XqQ/exec',
 
-  // Chuỗi bí mật, phải giống hệt TOKEN trong apps-script/Code.gs
+  // Để trống, khớp với TOKEN trong apps-script/Code.gs
   TOKEN: '',
 
   // Tự làm mới dữ liệu sau mỗi bao nhiêu giây (tối thiểu 30)

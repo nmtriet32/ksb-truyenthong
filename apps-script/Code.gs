@@ -12,7 +12,7 @@
  *
  * Dữ liệu trả ra trang chia hai lớp:
  *   - Công khai: mọi tab, trừ tab NS… và CP…; cột/mục ngân sách trong các tab khác bị xóa trắng.
- *   - Ngân sách: chỉ trả khi gửi đúng mật khẩu (tham số pw). Sai quá 10 lần/giờ thì tạm khóa.
+ *   - Ngân sách: chỉ trả qua POST {action:'data', pw} khi đúng mật khẩu. Sai quá 10 lần/giờ thì tạm khóa.
  */
 
 const SPREADSHEET_ID = '1qX3GrI2wOGJoLNst-PwfANLG6QQKoHtFkR08Sf9uc4U';
@@ -32,14 +32,11 @@ const LOCK = 'Nội dung thuộc mục Ngân sách (cần mật khẩu)';
 function doGet(e) {
   const p = (e && e.parameter) || {};
   if (TOKEN && p.token !== TOKEN) return json_({ error: 'unauthorized', message: 'Sai hoặc thiếu token.' });
+  return json_(buildData_(false));   // GET chỉ trả lớp công khai; ngân sách lấy bằng POST kèm mật khẩu
+}
 
-  let wantBudget = false;
-  if (p.pw) {
-    const chk = checkPassword_(p.pw);
-    if (!chk.ok) return json_({ error: 'bad_password', message: chk.message });
-    wantBudget = true;
-  }
-
+/** Đọc toàn bộ Sheet. withBudget = true thì kèm lớp ngân sách trong trường private. */
+function buildData_(withBudget) {
   const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
   const sheets = {}, priv = {};
   ss.getSheets().forEach(function (sh) {
@@ -51,15 +48,14 @@ function doGet(e) {
       values.forEach(function (r, i) { if (i >= 4 && c < r.length) r[c] = ''; });
     });
     values = trim_(values);
-    if (PRIVATE_SHEET.test(name)) { if (wantBudget) priv[name] = values; return; }
+    if (PRIVATE_SHEET.test(name)) { if (withBudget) priv[name] = values; return; }
     const pub = publicCopy_(values);
     sheets[name] = pub.rows;
-    if (wantBudget && pub.changed) priv[name] = values;
+    if (withBudget && pub.changed) priv[name] = values;
   });
-
   const out = { source: 'live', title: ss.getName(), updated: new Date().toISOString(), sheets: sheets };
-  if (wantBudget) out.private = priv;
-  return json_(out);
+  if (withBudget) out.private = priv;
+  return out;
 }
 
 /** Bản công khai của một tab: xóa trắng cột tiền, mục NGÂN SÁCH, dòng rà soát nhóm Ngân sách. */
@@ -112,6 +108,7 @@ function doPost(e) {
   if (TOKEN && p.token !== TOKEN) return json_({ error: 'unauthorized', message: 'Sai hoặc thiếu token.' });
   const chk = checkPassword_(p.pw || '');
   if (!chk.ok) return json_({ error: 'bad_password', message: chk.message });
+  if (p.action === 'data') return json_(buildData_(true));
   if (p.action !== 'approve') return json_({ error: 'bad_request', message: 'Thao tác không hợp lệ.' });
   if (APPROVAL_STATES.indexOf(p.status) === -1 || !p.key) return json_({ error: 'bad_request', message: 'Trạng thái không hợp lệ.' });
   const lock = LockService.getScriptLock(); lock.waitLock(10000);
@@ -152,11 +149,6 @@ function json_(obj) {
 
 /** Chạy hàm này trong trình soạn thảo để kiểm tra trước khi triển khai. */
 function testDoGet() {
-  const pub = JSON.parse(doGet({ parameter: { token: TOKEN } }).getContent());
-  Logger.log('Công khai: ' + Object.keys(pub.sheets || {}).length + ' tab');
-  const pw = PropertiesService.getScriptProperties().getProperty('BUDGET_PASSWORD');
-  if (pw) {
-    const all = JSON.parse(doGet({ parameter: { token: TOKEN, pw: pw } }).getContent());
-    Logger.log('Ngân sách: ' + Object.keys(all.private || {}).length + ' tab');
-  }
+  Logger.log('Công khai: ' + Object.keys(buildData_(false).sheets).length + ' tab');
+  Logger.log('Ngân sách: ' + Object.keys(buildData_(true).private).length + ' tab');
 }

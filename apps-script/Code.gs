@@ -106,6 +106,7 @@ function doPost(e) {
   let p = {};
   try { p = JSON.parse((e && e.postData && e.postData.contents) || '{}'); } catch (err) { return json_({ error: 'bad_request', message: 'Dữ liệu gửi lên không đọc được.' }); }
   if (TOKEN && p.token !== TOKEN) return json_({ error: 'unauthorized', message: 'Sai hoặc thiếu token.' });
+  if (p.action === 'writer') return setWriter_(p);
   const chk = checkPassword_(p.pw || '');
   if (!chk.ok) return json_({ error: 'bad_password', message: chk.message });
   if (p.action === 'data') return json_(buildData_(true));
@@ -126,9 +127,34 @@ function doPost(e) {
       const note = sh.getRange(5 + i, 7).getValue(); row[6] = note;
       sh.getRange(5 + i, 1, 1, 8).setNumberFormat('@').setValues([row]);
     } else {
-      sh.getRange(last < 4 ? 5 : last + 1, 1, 1, 8).setNumberFormat('@').setValues([row]);
+      const free = keys.indexOf('') >= 0 ? keys.indexOf('') : keys.length;
+      sh.getRange(5 + free, 1, 1, 8).setNumberFormat('@').setValues([row]);
     }
     return json_({ ok: true, at: at });
+  } finally { lock.releaseLock(); }
+}
+
+/** Chọn người viết cho một bài (không cần mật khẩu; chỉ nhận tên có trong cột K "Danh sách người viết"). */
+function setWriter_(p) {
+  if (!p.key) return json_({ error: 'bad_request', message: 'Thiếu khóa bài.' });
+  const lock = LockService.getScriptLock(); lock.waitLock(10000);
+  try {
+    const sh = SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName(APPROVAL_SHEET);
+    if (!sh) return json_({ error: 'no_sheet', message: 'Chưa có tab ' + APPROVAL_SHEET });
+    const last = sh.getLastRow();
+    const names = last > 4 ? sh.getRange(5, 11, last - 4, 1).getDisplayValues().map(function (r) { return r[0].trim(); }).filter(String) : [];
+    const writer = String(p.writer || '').trim();
+    if (writer && names.indexOf(writer) === -1) return json_({ error: 'bad_request', message: 'Tên người viết không có trong danh sách (cột K).' });
+    const keys = last > 4 ? sh.getRange(5, 8, last - 4, 1).getDisplayValues().map(function (r) { return r[0]; }) : [];
+    let i = keys.indexOf(p.key);
+    if (i === -1) {
+      i = keys.indexOf('') >= 0 ? keys.indexOf('') : keys.length;
+      const pageName = { ksb: 'Fanpage KSB', dc: 'Fanpage KCN Đất Cuốc' }[p.page] || p.page;
+      sh.getRange(5 + i, 1, 1, 4).setNumberFormat('@').setValues([[pageName, String(p.date || ''), String(p.stt || ''), String(p.title || '')]]);
+      sh.getRange(5 + i, 8).setNumberFormat('@').setValue(p.key);
+    }
+    sh.getRange(5 + i, 9).setNumberFormat('@').setValue(writer);
+    return json_({ ok: true });
   } finally { lock.releaseLock(); }
 }
 

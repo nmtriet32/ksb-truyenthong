@@ -458,3 +458,17 @@ a.cp-t svg{width:12px;height:12px;stroke:currentColor;margin-left:4px;vertical-a
 .bgl-next svg{width:18px;height:18px;stroke:#c98a00;flex:0 0 auto}
 @media (max-width:1120px){.bgl-grid{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.bgl-col:nth-child(3){grid-column:1/-1;border-left:0;border-top:1px solid #eef1f5}}
 @media (max-width:760px){.bgl-grid{grid-template-columns:minmax(0,1fr)}.bgl-col+.bgl-col{border-left:0;border-top:1px solid #eef1f5}.bgl-h{flex-wrap:wrap}.bgl-btn{margin-left:0}}
+
+/* Người viết bài (cạnh số ngày) */
+.cd-n{flex-wrap:wrap;align-items:center}
+.wsel{position:relative;display:inline-flex;align-items:center;gap:4px;margin-left:auto;max-width:100%;min-width:0;height:24px;padding:0 6px 0 6px;border-radius:999px;border:1.5px dashed #c9d2de;background:#fff;color:var(--muted);cursor:pointer}
+.wsel svg{width:12px;height:12px;stroke:currentColor;flex:0 0 auto}
+.wsel select{appearance:none;-webkit-appearance:none;border:0;background:transparent;font:inherit;font-size:11px;font-weight:700;color:inherit;cursor:pointer;min-width:0;max-width:110px;padding:0 10px 0 0;text-overflow:ellipsis;outline:none}
+.wsel::after{content:"";position:absolute;right:7px;top:9px;width:5px;height:5px;border-right:1.5px solid currentColor;border-bottom:1.5px solid currentColor;transform:rotate(45deg);pointer-events:none}
+.wsel:hover{border-color:#be185d;color:#be185d}
+.wsel.set{border-style:solid;border-color:#0a4e9b;background:#eef4fb;color:#0a4e9b}
+.wsel.busy{opacity:.5;pointer-events:none}
+.cd-n em{margin-left:6px}
+.cd-n .wsel{margin-left:auto}
+.cd-w{display:flex;justify-content:flex-end}
+@media (max-width:860px){.wsel select{max-width:none}}

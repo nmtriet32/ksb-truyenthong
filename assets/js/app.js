@@ -107,8 +107,9 @@ function build() {
   const tabsLike = pre => Object.keys(S).filter(n => n.startsWith(pre));
   const posts = (pre, page) => tabsLike(pre).flatMap(n => table(G(n), r => cell(r, 0) === 'STT' && cell(r, 1) === 'Ngày đăng').filter(x => /^\d+$/.test(x.STT) && dmy(x['Ngày đăng'])).map(x => ({ ...x, page, date: dmy(x['Ngày đăng']), key: `${page}|${x['Ngày đăng']}|${x.STT}` }))).sort((a, b) => a.date - b.date);
   m.content = { ksb: posts('Lịch bài KSB', 'ksb'), dc: posts('Lịch bài Đất Cuốc', 'dc') };
-  m.approvals = {};
-  table(G('Duyệt nội dung'), r => cell(r, 0) === 'Page' && cell(r, 1) === 'Ngày đăng').forEach(x => { if (x['Khóa']) m.approvals[x['Khóa']] = { st: x['Trạng thái duyệt'], at: x['Cập nhật lúc'], note: x['Ghi chú'] }; });
+  m.approvals = {}; m.writers = [];
+  table(G('Duyệt nội dung'), r => cell(r, 0) === 'Page' && cell(r, 1) === 'Ngày đăng', 0, false).forEach(x => { if (x['Khóa']) m.approvals[x['Khóa']] = { st: x['Trạng thái duyệt'], at: x['Cập nhật lúc'], note: x['Ghi chú'], writer: x['Người viết'] || '' }; if (x['Danh sách người viết']) m.writers.push(x['Danh sách người viết']); });
+  if (!m.writers.length) m.writers = (CFG.WRITERS || ['Minh Triết', 'Huỳnh Khánh Anh Thư']).slice();
   m.unlocked = !!LOCK.pw && Object.keys(SP).length > 0;
   M = m;
 }
@@ -619,13 +620,21 @@ function postCard(p) {
     ${st ? `<div class="cp-s">${st === 'Đã duyệt' ? 'Đã duyệt' : 'Cần sửa, xem góp ý trong Docs'}${a.at ? ` · ${esc(a.at)}` : ''}</div>` : `<div class="cp-s muted">${esc(p['Trạng thái'] || 'Chờ duyệt')}${hasTab ? '' : ' · chưa có bài viết'}</div>`}
   </div>`;
 }
+const WRITER_LOCAL_KEY = 'ksb-content-writers-local';
+let WRITER_LOCAL = (() => { try { return JSON.parse(localStorage.getItem(WRITER_LOCAL_KEY) || '{}') || {}; } catch (_) { return {}; } })();
+const writerOf = k => (!CFG.APPS_SCRIPT_URL && k in WRITER_LOCAL) ? WRITER_LOCAL[k] : ((M.approvals[k] || {}).writer || '');
+function writerSel(p) {
+  const w = writerOf(p.key); const list = M.writers.includes(w) || !w ? M.writers : M.writers.concat(w);
+  const short = n => n.split(' ').slice(-2).join(' ');
+  return `<label class="wsel ${w ? 'set' : ''}" title="${w ? 'Người viết: ' + esc(w) : 'Chọn người viết bài'}">${ic('users')}<select data-key="${esc(p.key)}" aria-label="Người viết bài ngày ${fDate(p.date)}"><option value="">Người viết</option>${list.map(n => `<option value="${esc(n)}" ${n === w ? 'selected' : ''}>${esc(short(n))}</option>`).join('')}</select></label>`;
+}
 function monthCal(posts, y, mo, today0) {
   const first = new Date(y, mo, 1), start = new Date(first); start.setDate(1 - ((first.getDay() + 6) % 7));
   const last = new Date(y, mo + 1, 0); const end = new Date(last); end.setDate(last.getDate() + (6 - ((last.getDay() + 6) % 7)));
   let h = `<div class="cal"><div class="cal-h">${['Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy', 'Chủ nhật'].map(d => `<div>${d}</div>`).join('')}</div><div class="cal-g">`;
   for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
     const inM = d.getMonth() === mo, ps = posts.filter(p => +p.date === +d), isT = +d === +today0;
-    h += `<div class="cday ${inM ? '' : 'out'} ${isT ? 'today' : ''} ${ps.length ? 'has' : ''}"><div class="cd-n"><b>${d.getDate()}</b><span>${['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'][d.getDay()]} ${fDate(d)}</span>${isT ? '<em>Hôm nay</em>' : ''}</div>${inM ? ps.map(postCard).join('') : ''}</div>`;
+    h += `<div class="cday ${inM ? '' : 'out'} ${isT ? 'today' : ''} ${ps.length ? 'has' : ''}"><div class="cd-n"><b>${d.getDate()}</b><span>${['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'][d.getDay()]} ${fDate(d)}</span>${isT ? '<em>Hôm nay</em>' : ''}${inM && ps.length ? writerSel(ps[0]) : ''}</div>${inM ? ps.map((p, i) => (i ? `<div class="cd-w">${writerSel(p)}</div>` : '') + postCard(p)).join('') : ''}</div>`;
   }
   return h + '</div></div>';
 }
@@ -640,6 +649,18 @@ function syncNote() {
 }
 function bindApprove() {
   if (bindApprove.done) return; bindApprove.done = true;
+  $('#page').addEventListener('change', async e => {
+    const sel = e.target.closest('.wsel select'); if (!sel) return;
+    const key = sel.dataset.key, writer = sel.value;
+    const post = M.content.ksb.concat(M.content.dc).find(p => p.key === key); if (!post) return;
+    if (!CFG.APPS_SCRIPT_URL) { WRITER_LOCAL[key] = writer; try { localStorage.setItem(WRITER_LOCAL_KEY, JSON.stringify(WRITER_LOCAL)); } catch (_) { } render(true); return; }
+    const lab = sel.closest('.wsel'); lab.classList.add('busy');
+    try {
+      const res = await fetch(CFG.APPS_SCRIPT_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ token: CFG.TOKEN || '', action: 'writer', page: post.page, date: post['Ngày đăng'], stt: post.STT, title: post['Tiêu đề / chủ đề'], writer, key }) });
+      const data = await res.json(); if (data.error) throw new Error(data.message || data.error);
+      M.approvals[key] = Object.assign({}, M.approvals[key], { writer }); await load(false); render(true);
+    } catch (err) { lab.classList.remove('busy'); alert('Chưa lưu được người viết: ' + err.message); render(true); }
+  });
   $('#page').addEventListener('click', async e => {
     const b = e.target.closest('.ap'); if (!b) return;
     const box = b.closest('.cp-a'), key = box.dataset.key, cur = apprOf(key).st || '';

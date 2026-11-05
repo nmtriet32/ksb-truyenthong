@@ -1080,9 +1080,12 @@ async function init() {
     if (e.key === 'ArrowRight' && pr) go(1); else if (e.key === 'ArrowLeft' && pr) go(-1);
     else if (e.key === 'p' || e.key === 'P') present(!pr); else if (e.key === 'r' || e.key === 'R') $('#btn-refresh').click(); else if (e.key === 'Escape') present(false);
   });
-  await load(true);
+  // hiện ngay bản lưu gần nhất (hoặc bản chụp), rồi thay bằng dữ liệu trực tiếp khi Apps Script trả về
+  let cached = null; try { cached = JSON.parse(localStorage.getItem(CACHE_KEY) || 'null'); } catch (_) { }
+  if (CFG.APPS_SCRIPT_URL && cached && cached.sheets) apply(cached, 'cache'); else if (window.KSB_SNAPSHOT) apply(window.KSB_SNAPSHOT, 'snapshot');
   if (LOCK.pw && !Object.keys(SP).length) { try { const d = await decryptBudget(LOCK.pw); SP = d.sheets || {}; build(); } catch (_) { relock(); } }
-  render(false);
+  render(false); paintStatus();
+  if (CFG.APPS_SCRIPT_URL) { const st = $('#status-text'); $('#status').title = 'Đang tải dữ liệu mới nhất từ Sheet…'; if (await load(false)) render(true); }
   if (CFG.APPS_SCRIPT_URL) setInterval(async () => { if (document.hidden) return; if (await load(false)) render(true); }, Math.max(30, +CFG.REFRESH_SECONDS || 60) * 1000);
 }
 init();

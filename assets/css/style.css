@@ -2,14 +2,14 @@
    KSB · Truyền thông 2027 — giao diện sang trọng, tối giản
    ========================================================= */
 :root{
-  --blue:#0d4f9b;          /* xanh logo KSB */
+  --blue:#0a4e9b;          /* xanh KSB, Pantone 2945 C (Brand Guideline 2025) */
   --blue-700:#0a3d78;
   --navy:#0a2246;          /* nền tối, tiêu đề */
-  --red:#e3242b;           /* đỏ logo KSB, dùng tiết chế */
+  --red:#ed1c24;           /* đỏ KSB, Pantone 485 C (Brand Guideline 2025), dùng tiết chế */
   --ink:#0f1b2d; --ink-2:#4a5568; --muted:#8a94a6; --faint:#b8c0cc;
   --line:#e6e9ef; --line-2:#f0f2f5; --bg:#ffffff; --bg-2:#f7f8fa; --tint:#eef3fa;
   --good:#1a7f4b; --good-50:#e8f4ed; --warn:#9a6200; --warn-50:#fbf2e0; --crit:#b42318; --crit-50:#fdeceb;
-  --c1:#0d4f9b; --c2:#5b8fd1; --c3:#a9c4e8; --c4:#e3242b; --c5:#8a94a6; --c6:#1a7f4b; --c7:#c98a00; --c8:#6a4fb3;
+  --c1:#0a4e9b; --c2:#5b8fd1; --c3:#a9c4e8; --c4:#ed1c24; --c5:#8a94a6; --c6:#1a7f4b; --c7:#c98a00; --c8:#6a4fb3;
   --wrap:1240px; --r:6px;
 }
 *{box-sizing:border-box}

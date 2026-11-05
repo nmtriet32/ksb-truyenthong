@@ -34,7 +34,7 @@ const fInt = n => Math.round(n).toLocaleString('vi-VN');
 const fVND = n => { const a = Math.abs(n); if (a >= 1e9) return (n / 1e9).toLocaleString('vi-VN', { maximumFractionDigits: 2 }) + ' tỷ'; if (a >= 1e6) return (n / 1e6).toLocaleString('vi-VN', { maximumFractionDigits: a >= 1e8 ? 0 : 1 }) + ' tr'; return fInt(n); };
 const pct = (a, b) => b ? Math.round(a / b * 100) : 0;
 const MON = ['Th1', 'Th2', 'Th3', 'Th4', 'Th5', 'Th6', 'Th7', 'Th8', 'Th9', 'Th10', 'Th11', 'Th12'];
-const C = ['#0d4f9b', '#e3242b', '#5b8fd1', '#c98a00', '#1a7f4b', '#6a4fb3', '#8a94a6', '#a9c4e8'];
+const C = ['#0a4e9b', '#ed1c24', '#5b8fd1', '#c98a00', '#1a7f4b', '#6a4fb3', '#8a94a6', '#a9c4e8'];
 const countBy = (arr, f) => arr.reduce((o, x) => { const k = f(x); if (k) o[k] = (o[k] || 0) + 1; return o; }, {});
 const isDone = s => /^(đã làm|đã đăng|đã duyệt|đã chốt|đã có|done|hoàn thành|đã xử lý)/i.test(String(s || '').trim());
 
@@ -220,9 +220,9 @@ const ICONS = {
 const ic = n => `<svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${ICONS[n] || ICONS.layers}</svg>`;
 const IMG = n => new URL(`assets/img/photos/${n}.jpg`, location.href).href;
 const GMETA = {
-  '': { c: '#0d4f9b', icon: 'brand', img: 'kcn-phoi-canh' },
-  'thuong-hieu': { c: '#0d4f9b', icon: 'brand', img: 'kcn-cong', pos: 'center 30%' },
-  'truyen-thong': { c: '#e3242b', icon: 'comm', img: 'gala-mc', pos: 'center 25%' },
+  '': { c: '#0a4e9b', icon: 'brand', img: 'kcn-phoi-canh' },
+  'thuong-hieu': { c: '#0a4e9b', icon: 'brand', img: 'kcn-cong', pos: 'center 30%' },
+  'truyen-thong': { c: '#ed1c24', icon: 'comm', img: 'gala-mc', pos: 'center 25%' },
   'su-kien': { c: '#c98a00', icon: 'event', img: 'gala-dong-tam', pos: 'center 40%' },
   'rui-ro': { c: '#6a4fb3', icon: 'risk', img: 'mo-xe-2', pos: 'center 55%' },
   'hoat-dong': { c: '#1a7f4b', icon: 'act', img: 'pn-hoa', pos: 'center 35%' },
@@ -400,8 +400,8 @@ function pHome() {
     ${box('Bản đồ rủi ro truyền thông', 'Mỗi chấm là một rủi ro, số trong chấm là STT', riskMatrix(M.risks) + `<div style="margin-top:12px"><a href="#/rui-ro">Xem quản trị rủi ro →</a></div>`, 'Rủi ro truyền thông')}</div>${lockCard('Ngân sách 2027, chi phí 2024–2026, hợp đồng báo chí, tài trợ')}`)}`;
   const chc = countBy(M.posts, p => p['Kênh']); const chk = Object.keys(chc);
   const after = () => {
-    makeDonut('c-chs', chk, chk.map(k => chc[k]), chk.map((k, i) => ({ Facebook: '#0d4f9b', YouTube: '#e3242b', Website: '#5b8fd1' }[k] || C[i])));
-    makeGauge('g1', assetsOk, M.assets.length, '#0d4f9b'); makeGauge('g2', revDone, M.review.length, '#6a4fb3'); makeGauge('g3', chosen, M.series.length, '#e3242b'); makeGauge('g4', evDated, M.events.length, '#c98a00');
+    makeDonut('c-chs', chk, chk.map(k => chc[k]), chk.map((k, i) => ({ Facebook: '#0a4e9b', YouTube: '#ed1c24', Website: '#5b8fd1' }[k] || C[i])));
+    makeGauge('g1', assetsOk, M.assets.length, '#0a4e9b'); makeGauge('g2', revDone, M.review.length, '#6a4fb3'); makeGauge('g3', chosen, M.series.length, '#ed1c24'); makeGauge('g4', evDated, M.events.length, '#c98a00');
   };
   return { html, after };
 }
@@ -415,14 +415,14 @@ function pBrandHub() {
   const html = `${head({ crumb: [{ t: 'Thương hiệu' }], title: '<b>Thương hiệu</b>, nền tảng cho mọi thông điệp', lead: 'Hai lớp thương hiệu: công ty (KSB nói gì) và cá nhân (ai nói thay KSB). Dữ liệu đọc từ tab Thương hiệu công ty và Thương hiệu cá nhân.', figs: [fig(M.arch.length, 'thành tố trong hệ thống thông điệp'), fig(`${ok}<small>/ ${M.assets.length}</small>`, 'tài sản thương hiệu đã có'), fig(doing, 'tài sản đang hoàn thiện'), fig(M.people.length, 'vai trò đại diện, phát ngôn')] })}
   ${sec('01', 'Các mục trong nhóm', `<div class="tiles">${itemsOf('thuong-hieu').map(i => tileOf(i, 'Thương hiệu')).join('')}</div>`)}
   ${sec('02', 'Tình trạng tài sản thương hiệu', `<div class="grid g46">${box('Mức độ hoàn thiện', `${pct(ok, M.assets.length)}% đã có`, donutBox('c-ast', `${ok}/${M.assets.length}`, 'đã có', 'lg'), 'Thương hiệu công ty · bảng 2')}<div class="photo-card" style="--img:url('${IMG('kcn-cong')}')"><div class="pc"><b>${esc((M.arch.find(a => a['Thành tố'] === 'Slogan') || {})['Nội dung'] || '')}</b><span>Slogan thương hiệu KSB</span></div></div></div><div style="height:20px"></div>${box('Danh mục tài sản thương hiệu', '', assetTable(), 'Thương hiệu công ty · bảng 2')}`)}`;
-  const after = () => makeDonut('c-ast', ['Đã có', 'Đang làm', 'Chưa có'], [ok, doing, M.assets.length - ok - doing], ['#1a7f4b', '#5b8fd1', '#e3242b']);
+  const after = () => makeDonut('c-ast', ['Đã có', 'Đang làm', 'Chưa có'], [ok, doing, M.assets.length - ok - doing], ['#1a7f4b', '#5b8fd1', '#ed1c24']);
   return { html, after };
 }
 function msgSystem(A, vals, letters) {
   const g = k => A.find(a => a['Thành tố'] === k) || {};
   const role = k => g(k)['Vai trò'] ? `<div class="mr">${esc(g(k)['Vai trò'])}</div>` : '';
   const card = (k, cls, icon, body) => `<div class="mc ${cls}"><div class="mh"><span class="mi">${ic(icon)}</span><span class="mn">${pad(g(k)['Thứ tự'])}</span></div><div class="mt">${esc(k)}</div>${body}${role(k)}</div>`;
-  const vc = ['#1a7f4b', '#0d4f9b', '#e3242b'];
+  const vc = ['#1a7f4b', '#0a4e9b', '#ed1c24'];
   const L = letters.length ? letters : [{ L: 'K', en: 'Knowledge' }, { L: 'S', en: 'Sustainability' }, { L: 'B', en: 'Building' }];
   const layer = (n, t, d, cards, cls) => `<div class="ml ${cls}"><div class="mlh"><b>${n}</b><span>${t}</span><small>${d}</small></div><div class="mlc">${cards}</div></div>`;
   return `<div class="msys">
@@ -452,26 +452,58 @@ function ksbStory(letters, ksbLine, vals, camp) {
     </div>
   </div><div class="src">Thương hiệu công ty · bảng 1 · Series hàng tháng</div>`;
 }
+/* Brand Guideline KSB (Sao Kim, 03/2025): số liệu chép từ file PDF trong Drive, không nằm trong Sheet */
+const BRAND_GL = {
+  url: 'https://drive.google.com/file/d/1Bn-UcCarNfsXTpVd46WnPRhkMYeZJTuc/view',
+  colors: [
+    { n: 'Xanh KSB', hex: '#0A4E9B', pms: 'PANTONE 2945 C', cmyk: 'C100 M80 Y5 K0', rgb: 'R10 G78 B155' },
+    { n: 'Đỏ KSB', hex: '#ED1C24', pms: 'PANTONE 485 C', cmyk: 'C0 M100 Y100 K0', rgb: 'R237 G28 B36' }
+  ],
+  forms: [['Logo ngang', '25 mm', '70 px'], ['Logo dọc', '18 mm', '51 px'], ['Logo biểu tượng', '6 mm', '17 px']],
+  rules: [
+    ['Lưới tỷ lệ', 'Đơn vị X bằng chiều cao chữ "K" trong tên thương hiệu; chỉ phóng to, thu nhỏ đúng tỷ lệ gốc.'],
+    ['Khoảng trống tối thiểu', 'Bằng chiều cao biểu tượng; không yếu tố đồ họa nào lấn vào vùng này.'],
+    ['Font chữ', 'Tên thương hiệu dùng font thiết kế riêng; font phụ trợ cho mọi ấn phẩm là Inter.'],
+    ['Logo màu hạn chế', 'Chỉ dùng bản đen trắng, đơn sắc, âm bản khi không thể in màu nhận diện.'],
+    ['Logo trên nền ảnh', 'Chuyển sang âm/dương bản khi đặt thẳng lên ảnh, hoặc đặt logo gốc trên vùng trống, nền trắng.'],
+    ['Thi công nổi, chìm', 'Logo nổi dày tối đa "a" (bề rộng nét đứng chữ "k"); khoét âm sâu a/3.']
+  ],
+  avoid: ['Đổi màu logo', 'Đổi tương quan kích thước biểu tượng và chữ', 'Thiết kế lại logo', 'Bóp dẹt, làm biến dạng', 'Đặt lệch phần biểu tượng', 'Lược bớt thành phần chính', 'Xoay logo', 'Xô nghiêng logo', 'Đặt trên nền cùng màu khiến logo không hiện đủ', 'Đặt trên nền có độ tương phản không phù hợp', 'Đặt trên nền đổi màu, tương phản mạnh', 'Đặt trên nền ảnh phức tạp'],
+  toc: ['Thông tin quan trọng', 'Ý tưởng', 'Các dạng thức logo', 'Tỷ lệ đồ họa', 'Hệ thống màu sắc', 'Font chữ', 'Không gian trống tối thiểu', 'Kích thước logo tối thiểu', 'Logo màu hạn chế', 'Logo thi công dạng nổi, dạng chìm', 'Logo đặt trên nền ảnh', 'Các trường hợp tránh sử dụng', 'Phối cảnh logo']
+};
 function logoRules() {
   const L = M.assets.find(a => /logo/i.test(a['Hạng mục'])) || {};
-  const sents = String(L['Căn cứ'] || '').split(/\.\s*/).map(x => x.trim()).filter(Boolean);
+  const G0 = M.assets.find(a => /cẩm nang|guideline/i.test(a['Hạng mục'])) || {};
+  const sents = String(L['Căn cứ'] || '').split(/\.\s*/).map(x => x.trim()).filter(x => x && !/guideline/i.test(x));
   const first = (sents.shift() || '').split(/,\s*/).filter(Boolean);
   const dos = first.filter(x => !/^không/i.test(x)), donts = first.filter(x => /^không/i.test(x));
   const uses = sents.join('; ').split(/;\s*/).filter(Boolean).map(u => { const m = u.match(/^(.*?)\s+(ưu tiên cho|cho)\s+(.*)$/i); return m ? [m[1], m[3]] : [u, '']; });
   const cap = t => t.charAt(0).toUpperCase() + t.slice(1);
+  const B = BRAND_GL;
   return `<div class="lgrid">
     <div class="lshow"><div class="lstage"><img src="assets/img/logo-ksb.png" alt="Logo KSB"></div>
       <div class="lmeta"><div><b>${esc(L['Hạng mục'] || 'Logo KSB')}</b>${tag(L['Trạng thái'] || '')}</div>
-      <div class="lsw"><span><i style="background:#0c509c"></i>Xanh KSB <code>#0C509C</code></span><span><i style="background:#ec1f28"></i>Đỏ KSB <code>#EC1F28</code></span></div></div></div>
+      <div class="lsw">${B.colors.map(c => `<span><i style="background:${c.hex}"></i>${esc(c.n)} <code>${c.hex}</code></span>`).join('')}</div></div></div>
     <div class="lrules">
       <div class="lcol ok"><h4>${ic('check')}Được làm</h4>${dos.map(d => `<p>${esc(cap(d))}</p>`).join('')}${uses.map(u => `<p><b>${esc(cap(u[0]))}</b>${u[1] ? ` → ${esc(u[1])}` : ''}</p>`).join('')}</div>
       <div class="lcol no"><h4>${ic('alert')}Không được</h4>${donts.map(d => `<p>${esc(cap(d))}</p>`).join('')}<p>Không dùng file logo chưa được Ban giám đốc duyệt</p></div>
       ${L['Việc tiếp theo'] ? `<div class="lnext">${ic('clock')}<div><small>Việc tiếp theo</small><b>${esc(L['Việc tiếp theo'])}</b></div></div>` : ''}
-    </div></div><div class="src">Thương hiệu công ty · bảng 2 · mã màu lấy từ file logo đã duyệt</div>`;
+    </div></div><div class="src">Thương hiệu công ty · bảng 2 · mã màu theo Brand Guideline</div>
+  <div class="bgl">
+    <div class="bgl-h"><span class="mi" style="--mc:#0a4e9b">${ic('layers')}</span><div><small>Cẩm nang nhận diện thương hiệu ${G0['Trạng thái'] ? `· ${esc(G0['Trạng thái'])}` : ''}</small><b>KSB Brand Guideline</b><span>Sao Kim thực hiện, 03/2025 · ${B.toc.length} mục</span></div><a class="bgl-btn" href="${B.url}" target="_blank" rel="noopener">${ic('news')}Mở file PDF</a></div>
+    <div class="bgl-grid">
+      <div class="bgl-col"><h5>Màu chính</h5>${B.colors.map(c => `<div class="bsw"><i style="background:${c.hex}"></i><div><b>${esc(c.n)}</b><span>${c.pms}</span><code>${c.hex} · ${c.cmyk} · ${c.rgb}</code></div></div>`).join('')}
+        <h5>Kích thước tối thiểu</h5><table class="tbl bsz"><tr><th>Dạng logo</th><th class="r">In ấn</th><th class="r">Màn hình</th></tr>${B.forms.map(f => `<tr><td>${f[0]}</td><td class="r tnum">${f[1]}</td><td class="r tnum">${f[2]}</td></tr>`).join('')}</table></div>
+      <div class="bgl-col"><h5>Quy tắc dùng logo</h5>${B.rules.map(r => `<div class="brl"><b>${esc(r[0])}</b><span>${esc(r[1])}</span></div>`).join('')}</div>
+      <div class="bgl-col"><h5>${B.avoid.length} trường hợp tránh sử dụng</h5><ol class="bav">${B.avoid.map(a => `<li>${esc(a)}</li>`).join('')}</ol></div>
+    </div>
+    <div class="bgl-toc">${B.toc.map((t, i) => `<span><b>${pad(i + 1)}</b>${esc(t)}</span>`).join('')}</div>
+    ${G0['Việc tiếp theo'] ? `<div class="bgl-next">${ic('clock')}<span><b>Việc tiếp theo:</b> ${esc(G0['Việc tiếp theo'])}</span></div>` : ''}
+  </div><div class="src">KSB-Brand Guildline.pdf (Drive, thư mục nhận diện thương hiệu) · Thương hiệu công ty · bảng 2</div>`;
 }
 function langAudience() {
-  const AI = [[/báo chí|công chúng/i, 'news', '#0d4f9b'], [/cổ đông|đầu tư/i, 'chart', '#6a4fb3'], [/lao động|gia đình/i, 'users', '#e3242b'], [/chính quyền|cộng đồng/i, 'act', '#1a7f4b'], [/ứng viên/i, 'check', '#c98a00']];
-  const aud = M.audience.map((a, i) => { const m = AI.find(x => x[0].test(a.who)) || [0, 'users', '#0d4f9b']; return `<div class="au" style="--c:${m[2]}"><span class="mi" style="--mc:${m[2]}">${ic(m[1])}</span><div class="aw">${esc(a.who)}</div><div class="af">“${esc(a.feel)}”</div></div>`; }).join('');
+  const AI = [[/báo chí|công chúng/i, 'news', '#0a4e9b'], [/cổ đông|đầu tư/i, 'chart', '#6a4fb3'], [/lao động|gia đình/i, 'users', '#ed1c24'], [/chính quyền|cộng đồng/i, 'act', '#1a7f4b'], [/ứng viên/i, 'check', '#c98a00']];
+  const aud = M.audience.map((a, i) => { const m = AI.find(x => x[0].test(a.who)) || [0, 'users', '#0a4e9b']; return `<div class="au" style="--c:${m[2]}"><span class="mi" style="--mc:${m[2]}">${ic(m[1])}</span><div class="aw">${esc(a.who)}</div><div class="af">“${esc(a.feel)}”</div></div>`; }).join('');
   const pairs = M.lang.map(l => `<div class="lp"><div class="lno"><small>Tránh</small><s>${esc(l.no)}</s></div><div class="lar">${ic('arrow')}</div><div class="lyes"><small>Dùng thay</small><b>${esc(l.yes)}</b></div>${l.note ? `<div class="lnt">ⓘ ${esc(l.note)}</div>` : ''}</div>`).join('');
   return `<h4 class="subh"><span>A</span>Điều mỗi nhóm đối tượng cần cảm nhận <em>${M.audience.length} nhóm</em></h4><div class="augrid">${aud}</div><div class="src">Tổng quan · mục 5</div>
   <h4 class="subh"><span>B</span>Từ hạn chế → từ dùng thay <em>${M.lang.length} cặp</em></h4><div class="lpgrid">${pairs}</div><div class="src">Tổng quan · mục 4</div>`;
@@ -526,7 +558,7 @@ function pPress() {
   const html = `${head({ crumb: [{ id: 'truyen-thong', t: 'Truyền thông' }, { t: 'Đối ngoại' }, { t: 'Báo chí' }], title: 'Truyền thông đối ngoại · <b>Báo chí</b>', lead: 'Theo dõi bài đăng về KSB, sự kiện với báo chí và kế hoạch năm 2027. Hợp đồng và thanh toán xem ở mục Ngân sách.', tabs: tabsOf(NAV[1].groups[0].items, 'truyen-thong/bao-chi'), figs: [fig(cov.length, 'bài báo đã ghi nhận'), fig(Object.keys(outlets).length, 'cơ quan báo chí có bài'), fig(pe.length, 'sự kiện với báo chí 2027'), fig(kpi ? (kpi.target || 'chưa có') : '–', 'chỉ tiêu báo chí 2027', kpi && /cần chốt|chưa/i.test(kpi.target) ? 'alert' : '')] })}
   ${sec('01', 'Theo dõi bài báo về KSB', cov.length ? `<div class="grid g3">${box('Theo sắc thái', '', canvas('c-sent', 'sm'))}${box('Theo cơ quan báo chí', '', canvas('c-outlet', 'sm'))}${box('Bài mới nhất', '', `<div class="list">${cov.slice().sort((a, b) => (b.date || 0) - (a.date || 0)).slice(0, 6).map(p => `<div class="li">${dbox(p.date, true)}<div><div class="t">${p['Link'] ? `<a href="${esc(p['Link'])}" target="_blank" rel="noopener">${esc(p['Tiêu đề'])}</a>` : esc(p['Tiêu đề'])}</div><div class="s">${esc(p['Báo / tạp chí'])} · ${esc(p['Loại'])}</div></div>${tag(p['Sắc thái'])}</div>`).join('')}</div>`)}</div>` : empty('Chưa ghi nhận bài báo nào', 'Mỗi bài báo nhắc đến KSB, Đất Cuốc, Hoa Lư ghi một dòng vào tab Theo dõi báo chí. Trang sẽ tự vẽ biểu đồ theo báo và theo sắc thái.') + `<div class="note" style="margin-top:14px">Hiện chưa đo được kết quả của các hợp đồng báo chí năm 2026${kpi ? `; chỉ tiêu “${esc(kpi.name)}” đang ở trạng thái “${esc(kpi.target || 'chưa có')}”` : ''}.</div>`)}
   ${sec('02', 'Kế hoạch 2027', `<div class="grid g2">${box('Sự kiện với báo chí', '', eventList(pe), 'Sự kiện 2027')}${box('Việc còn thiếu', '', reviewList(reviewItems(/theo dõi|báo chí/i)), 'Rà soát 2027')}</div>${lockCard('Giá trị hợp đồng theo đơn vị, tình trạng thanh toán, chi báo chí theo quý, bài PR 2027')}`)}`;
-  const after = () => { if (cov.length) { const s = Object.keys(sent); chart('c-sent', { type: 'doughnut', data: { labels: s, datasets: [{ data: s.map(k => sent[k]), backgroundColor: s.map(k => /tích/i.test(k) ? '#1a7f4b' : /tiêu/i.test(k) ? '#e3242b' : '#a9c4e8'), borderColor: '#fff', borderWidth: 2 }] }, options: { cutout: '68%' } }); const o = Object.entries(outlets).sort((a, b) => b[1] - a[1]).slice(0, 8); barChart('c-outlet', o.map(x => x[0]), [{ label: 'Bài', data: o.map(x => x[1]) }], { horizontal: true }); } };
+  const after = () => { if (cov.length) { const s = Object.keys(sent); chart('c-sent', { type: 'doughnut', data: { labels: s, datasets: [{ data: s.map(k => sent[k]), backgroundColor: s.map(k => /tích/i.test(k) ? '#1a7f4b' : /tiêu/i.test(k) ? '#ed1c24' : '#a9c4e8'), borderColor: '#fff', borderWidth: 2 }] }, options: { cutout: '68%' } }); const o = Object.entries(outlets).sort((a, b) => b[1] - a[1]).slice(0, 8); barChart('c-outlet', o.map(x => x[0]), [{ label: 'Bài', data: o.map(x => x[1]) }], { horizontal: true }); } };
   return { html, after };
 }
 function pSponsor() {
@@ -564,7 +596,7 @@ const APPROVE_LOCAL_KEY = 'ksb-content-approvals-local';
 let APPROVE_LOCAL = (() => { try { return JSON.parse(localStorage.getItem(APPROVE_LOCAL_KEY) || '{}') || {}; } catch (_) { return {}; } })();
 const PAGE_NAME = { ksb: 'Fanpage KSB', dc: 'Fanpage KCN Đất Cuốc' };
 const apprOf = k => (APPROVE_LOCAL[k] && !CFG.APPS_SCRIPT_URL ? APPROVE_LOCAL[k] : M.approvals[k]) || {};
-const PILLAR_C = ['#0d4f9b', '#e3242b', '#1a7f4b', '#c98a00', '#6a4fb3', '#0f766e', '#be185d', '#5b8fd1', '#8a5d00'];
+const PILLAR_C = ['#0a4e9b', '#ed1c24', '#1a7f4b', '#c98a00', '#6a4fb3', '#0f766e', '#be185d', '#5b8fd1', '#8a5d00'];
 const pillarColor = (() => { const m = {}; return t => (m[t] = m[t] || PILLAR_C[Object.keys(m).length % PILLAR_C.length]); })();
 function docLink(post) {
   const D = (window.KSB_CONTENT_DOCS || {})[post.page]; if (!D) return '';
@@ -634,7 +666,7 @@ function pContentHub() {
   const pages = itemsOf('noi-dung'); const all = M.content.ksb.concat(M.content.dc); const S0 = contentStats(all); const t0 = today();
   const next = all.filter(p => p.date >= t0).slice(0, 8);
   const html = `${head({ crumb: [{ t: 'Nội dung' }], title: '<b>Nội dung</b> fanpage', lead: 'Lịch bài của fanpage KSB và KCN Đất Cuốc theo tháng. Bấm tiêu đề để mở bài trong Google Docs; bấm Duyệt hoặc Cần sửa ngay dưới mỗi bài.', figs: [fig(S0.n, 'bài trong lịch'), fig(S0.ok, 'bài đã duyệt', '', 'check'), fig(S0.fix, 'bài cần sửa', 'alert'), fig(S0.wait, 'bài chờ duyệt', '', 'clock')] })}
-  ${sec('01', 'Hai fanpage', `<div class="grid g2">${pages.map(i => { const ps = M.content[i.page]; const st = contentStats(ps); return `<a class="cpage" href="#/${i.id}" style="--c:${i.page === 'ksb' ? '#0d4f9b' : '#e3242b'}"><div class="cpg-h"><span class="mi" style="--mc:${i.page === 'ksb' ? '#0d4f9b' : '#e3242b'}">${ic(i.page === 'ksb' ? 'brand' : 'channel')}</span><div><b>${esc(i.t)}</b><span>${ps.length} bài · ${ps.length ? `${fDM(ps[0].date)} – ${fDate(ps[ps.length - 1].date)}` : 'chưa có lịch'}</span></div><em>Mở lịch →</em></div>${statBar(st)}<div class="cpg-s"><span class="ok">${st.ok} đã duyệt</span><span class="fix">${st.fix} cần sửa</span><span>${st.wait} chờ duyệt</span></div></a>`; }).join('')}</div>${syncNote()}`)}
+  ${sec('01', 'Hai fanpage', `<div class="grid g2">${pages.map(i => { const ps = M.content[i.page]; const st = contentStats(ps); return `<a class="cpage" href="#/${i.id}" style="--c:${i.page === 'ksb' ? '#0a4e9b' : '#ed1c24'}"><div class="cpg-h"><span class="mi" style="--mc:${i.page === 'ksb' ? '#0a4e9b' : '#ed1c24'}">${ic(i.page === 'ksb' ? 'brand' : 'channel')}</span><div><b>${esc(i.t)}</b><span>${ps.length} bài · ${ps.length ? `${fDM(ps[0].date)} – ${fDate(ps[ps.length - 1].date)}` : 'chưa có lịch'}</span></div><em>Mở lịch →</em></div>${statBar(st)}<div class="cpg-s"><span class="ok">${st.ok} đã duyệt</span><span class="fix">${st.fix} cần sửa</span><span>${st.wait} chờ duyệt</span></div></a>`; }).join('')}</div>${syncNote()}`)}
   ${sec('02', 'Bài sắp đăng', box('', `${next.length} bài gần nhất, cả hai page`, next.length ? `<div class="list">${next.map(p => `<div class="li">${dbox(p.date)}<div><div class="t">${docLink(p) ? `<a href="${docLink(p)}" target="_blank" rel="noopener">${esc(p['Tiêu đề / chủ đề'])}</a>` : esc(p['Tiêu đề / chủ đề'])}</div><div class="s">${PAGE_NAME[p.page]} · ${esc(p['Trụ cột'])} · ${esc(p['Định dạng'])}</div></div>${apprOf(p.key).st ? tag(apprOf(p.key).st === 'Đã duyệt' ? 'Đã duyệt' : 'Chưa xong: cần sửa') : `<span class="tag">Chờ duyệt</span>`}</div>`).join('')}</div>` : empty('Không có bài sắp đăng'), 'Lịch bài KSB · Lịch bài Đất Cuốc'))}`;
   return { html };
 }
@@ -715,7 +747,7 @@ function pEventType(item) {
 function heatmap(posts, holidays, year) {
   const cnt = {}; posts.forEach(p => { if (p.date && p.date.getFullYear() === year) (cnt[+p.date] = cnt[+p.date] || []).push(p); });
   const hol = {}; holidays.forEach(h => { if (/^có/i.test(h['Nghỉ chính thức'] || '')) hol[+h.date] = h['Sự kiện']; });
-  const SQ = ['#eef2f6', '#c9daf0', '#8fb3e2', '#3f78c4', '#0d4f9b'];
+  const SQ = ['#eef2f6', '#c9daf0', '#8fb3e2', '#3f78c4', '#0a4e9b'];
   const start = new Date(year, 0, 1); start.setDate(start.getDate() - ((start.getDay() + 6) % 7));
   const end = new Date(year, 11, 31); let cells = '', months = '', col = 0, lastM = -1;
   for (let d = new Date(start); ; d.setDate(d.getDate() + 1)) {
@@ -725,9 +757,9 @@ function heatmap(posts, holidays, year) {
     if (inY && d.getMonth() !== lastM && d.getDate() <= 7 && dow === 0) { months += `<span style="left:${(col - 1) * 16}px">${MON[d.getMonth()]}</span>`; lastM = d.getMonth(); }
     const list = cnt[+d] || [];
     const tip = inY ? `${fDate(d)}${hol[+d] ? ' · ' + hol[+d] : ''}${list.length ? '\n' + list.map(p => `• ${p['Kênh']}: ${p['Tiêu đề / chủ đề']}`).join('\n') : ''}` : '';
-    cells += `<i style="background:${inY ? SQ[Math.min(list.length, 4)] : 'transparent'};${hol[+d] ? 'outline:2px solid #e3242b;outline-offset:-2px' : ''}" title="${esc(tip)}"></i>`;
+    cells += `<i style="background:${inY ? SQ[Math.min(list.length, 4)] : 'transparent'};${hol[+d] ? 'outline:2px solid #ed1c24;outline-offset:-2px' : ''}" title="${esc(tip)}"></i>`;
   }
-  return `<div class="xs"><div style="width:max-content"><div class="heat-months">${months}</div><div class="heat-wrap"><div class="heat-days">${['T2', '', 'T4', '', 'T6', '', 'CN'].map(x => `<span>${x}</span>`).join('')}</div><div class="heat">${cells}</div></div></div></div><div class="legend"><span>Ít</span>${SQ.slice(1).map(c => `<span><i style="background:${c}"></i></span>`).join('')}<span>Nhiều bài trong ngày</span><span style="margin-left:12px"><i style="background:#fff;outline:2px solid #e3242b;outline-offset:-2px"></i>Ngày nghỉ chính thức</span></div>`;
+  return `<div class="xs"><div style="width:max-content"><div class="heat-months">${months}</div><div class="heat-wrap"><div class="heat-days">${['T2', '', 'T4', '', 'T6', '', 'CN'].map(x => `<span>${x}</span>`).join('')}</div><div class="heat">${cells}</div></div></div></div><div class="legend"><span>Ít</span>${SQ.slice(1).map(c => `<span><i style="background:${c}"></i></span>`).join('')}<span>Nhiều bài trong ngày</span><span style="margin-left:12px"><i style="background:#fff;outline:2px solid #ed1c24;outline-offset:-2px"></i>Ngày nghỉ chính thức</span></div>`;
 }
 function pChannels() {
   const chs = ['Facebook', 'YouTube', 'Website']; const CH = { Facebook: C[0], YouTube: C[1], Website: C[2] };
@@ -779,7 +811,7 @@ function pRiskHub() {
   const lv = [R.filter(r => r.score >= 15).length, R.filter(r => r.score >= 8 && r.score < 15).length, R.filter(r => r.score < 8).length];
   const after = () => {
     chart('c-rg', { type: 'radar', data: { labels: groups, datasets: [{ label: 'Điểm cao nhất', data: mx, borderColor: '#6a4fb3', backgroundColor: 'rgba(106,79,179,.18)', pointBackgroundColor: '#6a4fb3' }, { label: 'Điểm trung bình', data: avg, borderColor: '#5b8fd1', backgroundColor: 'rgba(91,143,209,.15)', pointBackgroundColor: '#5b8fd1' }] }, options: { scales: { r: { min: 0, max: 25, ticks: { stepSize: 5, backdropColor: 'transparent' }, grid: { color: '#e6e9ef' }, angleLines: { color: '#e6e9ef' }, pointLabels: { font: { size: 12, weight: '600' } } } } } });
-    makeDonut('c-lv', ['Cao (≥ 15)', 'Trung bình (8–14)', 'Thấp (≤ 7)'], lv, ['#e3242b', '#c98a00', '#a9c4e8']);
+    makeDonut('c-lv', ['Cao (≥ 15)', 'Trung bình (8–14)', 'Thấp (≤ 7)'], lv, ['#ed1c24', '#c98a00', '#a9c4e8']);
   };
   return { html, after };
 }
@@ -818,7 +850,7 @@ function pActHub() {
   const html = `${head({ crumb: [{ t: 'Hoạt động dự kiến' }], title: '<b>Hoạt động dự kiến</b> 2027', lead: 'Hỗ trợ công tác hội, ESG và CSR: những hoạt động bổ trợ cho thương hiệu, hiện đang ở mức đề xuất.', figs: [fig(A.length, 'hoạt động đề xuất'), fig(A.filter(a => !/đề xuất/i.test(a['Trạng thái'])).length, 'đã duyệt hoặc đang làm'), fig(A.filter(a => !a.w).length, 'chưa có thời gian', 'alert'), fig(groups.length, 'nhóm hoạt động')] })}
   ${sec('01', 'Ba nhóm hoạt động', `<div class="tiles">${itemsOf('hoat-dong').map(i => { const n = A.filter(a => a['Nhóm'] === i.grp).length; return `<a class="tile" href="#/${i.id}" style="--c:${gColor(i.id)}"><div class="ico">${ic(gIcon(i.id))}</div><div class="k">Hoạt động dự kiến</div><h3>${i.t}</h3><p>${i.s}</p><div class="st"><b>${n}</b><span>hoạt động</span></div></a>`; }).join('')}</div>`)}
   ${sec('02', 'Tiến độ theo nhóm', `<div class="grid g46"><div class="grid">${box('Theo nhóm', '', donutBox('c-actg', A.length, 'hoạt động', 'sm'), 'Hoạt động dự kiến')}${box('Trạng thái', '', canvas('c-act', 'sm'), 'Hoạt động dự kiến')}</div>${box('Sắp tới', 'Theo thời gian dự kiến', actList(A.filter(a => a.w).sort((a, b) => a.w.d - b.w.d).slice(0, 5)), 'Hoạt động dự kiến')}</div>`)}`;
-  const after = () => { makeDonut('c-actg', groups, groups.map(g => A.filter(a => a['Nhóm'] === g).length), ['#5b8fd1', '#1a7f4b', '#e3242b']); barChart('c-act', groups, st.map((s, i) => ({ label: s, data: groups.map(g => A.filter(a => a['Nhóm'] === g && a['Trạng thái'] === s).length), color: [C[3], C[2], C[0], '#1a7f4b'][i] })), { horizontal: true, stacked: true }); };
+  const after = () => { makeDonut('c-actg', groups, groups.map(g => A.filter(a => a['Nhóm'] === g).length), ['#5b8fd1', '#1a7f4b', '#ed1c24']); barChart('c-act', groups, st.map((s, i) => ({ label: s, data: groups.map(g => A.filter(a => a['Nhóm'] === g && a['Trạng thái'] === s).length), color: [C[3], C[2], C[0], '#1a7f4b'][i] })), { horizontal: true, stacked: true }); };
   return { html, after };
 }
 function pActGroup(item) {
@@ -870,7 +902,7 @@ const bindRelock = () => { const b = $('#btn-relock'); if (b) b.onclick = () => 
 const guard = f => () => M.unlocked ? f() : pLock();
 /* Bộ chọn năm cho mục Ngân sách: chọn một hoặc nhiều năm để so sánh */
 const YEAR_KEY = 'ksb-budget-years', ALL_YEARS = [2024, 2025, 2026, 2027];
-const YCOL = { 2024: '#a3adbd', 2025: '#5b8fd1', 2026: '#0d4f9b', 2027: '#0f766e' };
+const YCOL = { 2024: '#a3adbd', 2025: '#5b8fd1', 2026: '#0a4e9b', 2027: '#0f766e' };
 let YSEL = (() => { try { const v = JSON.parse(localStorage.getItem(YEAR_KEY) || 'null'); if (Array.isArray(v) && v.length) return v.filter(y => ALL_YEARS.includes(y)); } catch (_) { } return ALL_YEARS.slice(); })();
 const yNote = y => y === 2027 ? 'dự toán' : y === 2026 ? `thực tế đến ${M.cpLatest}` : 'thực tế';
 const ySel = () => ALL_YEARS.filter(y => YSEL.includes(y));
@@ -929,7 +961,7 @@ function pBudgetHub() {
   ${sec('04', 'Chi tiết', `<div class="tiles">${itemsOf('ngan-sach').map(i => tileOf(i, 'Ngân sách')).join('')}</div>`)}`;
   const after = () => {
     bindRelock();
-    makeDonut('c-bud', ['Chi thường xuyên', 'Chiến dịch Người KSB'], [M.regTotal, M.campTotal], ['#0d4f9b', '#e3242b'], { money: true });
+    makeDonut('c-bud', ['Chi thường xuyên', 'Chiến dịch Người KSB'], [M.regTotal, M.campTotal], ['#0a4e9b', '#ed1c24'], { money: true });
     const rg = M.regular.map((r, i) => [r['Đầu mục'], regAmt[i]]).filter(x => x[1] > 0).sort((a, b) => b[1] - a[1]);
     barChart('c-reg', rg.map(x => x[0]), [{ label: 'Dự toán 2027', data: rg.map(x => x[1]), color: '#0f766e' }], { horizontal: true, money: true });
     const qs = ['Q1', 'Q2', 'Q3', 'Q4', 'T1/2028'];

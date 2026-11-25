@@ -235,7 +235,7 @@ const SUB = {
   'truyen-thong/bao-chi': ['news', 'gala-mc'], 'truyen-thong/tai-tro': ['money', 'gala-khach'], 'truyen-thong/su-kien-ben-ngoai': ['event', 'kcn-phoi-canh'], 'truyen-thong/doi-noi': ['users', 'pn-tap-the'], 'truyen-thong/kenh-so': ['channel', 'kcn-phoi-canh'],
   'su-kien/noi-bo': ['users', 'pn-nhom'], 'su-kien/doi-ngoai': ['comm', 'gala-mc'], 'su-kien/co-dong': ['chart', 'gala-khach'], 'su-kien/ky-niem': ['event', 'gala-ky-niem'], 'su-kien/le-tet': ['event', 'pn-hoa'],
   'rui-ro/thuong-hieu': ['brand', 'kcn-cong'], 'rui-ro/lanh-dao': ['users', 'pn-phat-bieu'], 'rui-ro/hdsx': ['layers', 'mo-xe-1'], 'rui-ro/tai-chinh': ['money', 'mo-xe-2'],
-  'noi-dung/ksb': ['brand', 'pn-tap-the'], 'noi-dung/dat-cuoc': ['channel', 'kcn-cong'],
+  'noi-dung/ksb': ['brand', 'pn-tap-the'], 'noi-dung/dat-cuoc': ['channel', 'kcn-cong'], 'noi-dung/nguoi-ksb': ['users', 'pn-tap-the-2'],
   'ngan-sach/doi-ngoai': ['news', 'gala-mc'], 'ngan-sach/noi-bo': ['users', 'pn-tap-the'],
   'hoat-dong/hoi': ['users', 'pn-tap-the-2'], 'hoat-dong/esg': ['act', 'kcn-phoi-canh'], 'hoat-dong/csr': ['heart', 'pn-tang-cay']
 };
@@ -326,7 +326,8 @@ const NAV = [
     { gt: 'Truyền thông đối nội', items: [{ id: 'truyen-thong/doi-noi', t: 'Truyền thông đối nội', s: 'Nội dung văn hóa, sự kiện, đề cử nhân vật' }] },
     { gt: 'Kênh truyền thông số', items: [{ id: 'truyen-thong/kenh-so', t: 'Kênh truyền thông số', s: 'Website, fanpage KSB và Đất Cuốc, YouTube' }] }] },
   { id: 'noi-dung', n: '03', t: 'Nội dung', d: 'Lịch bài fanpage KSB và KCN Đất Cuốc theo tháng. Lãnh đạo bấm Duyệt hoặc Cần sửa ngay trên lịch.', groups: [
-    { items: [{ id: 'noi-dung/ksb', t: 'Fanpage KSB', s: 'Lịch bài theo tháng, duyệt từng bài', page: 'ksb' }, { id: 'noi-dung/dat-cuoc', t: 'Fanpage KCN Đất Cuốc', s: 'Lịch bài theo tháng, duyệt từng bài', page: 'dc' }] }] },
+    { gt: 'Fanpage', items: [{ id: 'noi-dung/ksb', t: 'Fanpage KSB', s: 'Lịch bài theo tháng, duyệt từng bài', page: 'ksb' }, { id: 'noi-dung/dat-cuoc', t: 'Fanpage KCN Đất Cuốc', s: 'Lịch bài theo tháng, duyệt từng bài', page: 'dc' }] },
+    { gt: 'Chiến dịch', items: [{ id: 'noi-dung/nguoi-ksb', t: 'Chiến dịch Người KSB', s: 'Nội dung, ý nghĩa, triển khai e-magazine, ngân sách 2 PA', camp: 'nguoi-ksb' }] }] },
   { id: 'su-kien', n: '04', t: 'Sự kiện', d: 'Lịch sự kiện 2027 của KSB: kỷ niệm, cổ đông, báo chí và nội bộ.', groups: [
     { items: [{ id: 'su-kien/noi-bo', t: 'Sự kiện nội bộ', s: 'Gắn kết CBNV, đào tạo, vinh danh', types: ['Nội bộ'] }, { id: 'su-kien/doi-ngoai', t: 'Sự kiện đối ngoại', s: 'Báo chí, đối tác, xúc tiến đầu tư', types: ['Báo chí', 'Bên ngoài'] }, { id: 'su-kien/co-dong', t: 'Sự kiện cổ đông', s: 'ĐHĐCĐ, mốc công bố thông tin', types: ['Cổ đông'] }, { id: 'su-kien/ky-niem', t: 'Sự kiện kỷ niệm', s: 'Lễ kỷ niệm 35 năm, phim tài liệu 01/2028', types: ['Kỷ niệm'] }] }] },
   { id: 'rui-ro', n: '05', t: 'Quản trị rủi ro', d: 'Nhận diện rủi ro truyền thông, chấm điểm và kịch bản ứng phó theo bốn nhóm.', groups: [
@@ -684,11 +685,49 @@ function bindApprove() {
   });
 }
 function pContentHub() {
-  const pages = itemsOf('noi-dung'); const all = M.content.ksb.concat(M.content.dc); const S0 = contentStats(all); const t0 = today();
+  const pages = itemsOf('noi-dung').filter(i => i.page); const all = M.content.ksb.concat(M.content.dc); const S0 = contentStats(all); const t0 = today();
   const next = all.filter(p => p.date >= t0).slice(0, 8);
   const html = `${head({ crumb: [{ t: 'Nội dung' }], title: '<b>Nội dung</b> fanpage', lead: 'Lịch bài của fanpage KSB và KCN Đất Cuốc theo tháng. Bấm tiêu đề để mở bài trong Google Docs; bấm Duyệt hoặc Cần sửa ngay dưới mỗi bài.', figs: [fig(S0.n, 'bài trong lịch'), fig(S0.ok, 'bài đã duyệt', '', 'check'), fig(S0.fix, 'bài cần sửa', 'alert'), fig(S0.wait, 'bài chờ duyệt', '', 'clock')] })}
   ${sec('01', 'Hai fanpage', `<div class="grid g2">${pages.map(i => { const ps = M.content[i.page]; const st = contentStats(ps); return `<a class="cpage" href="#/${i.id}" style="--c:${i.page === 'ksb' ? '#0a4e9b' : '#ed1c24'}"><div class="cpg-h"><span class="mi" style="--mc:${i.page === 'ksb' ? '#0a4e9b' : '#ed1c24'}">${ic(i.page === 'ksb' ? 'brand' : 'channel')}</span><div><b>${esc(i.t)}</b><span>${ps.length} bài · ${ps.length ? `${fDM(ps[0].date)} – ${fDate(ps[ps.length - 1].date)}` : 'chưa có lịch'}</span></div><em>Mở lịch →</em></div>${statBar(st)}<div class="cpg-s"><span class="ok">${st.ok} đã duyệt</span><span class="fix">${st.fix} cần sửa</span><span>${st.wait} chờ duyệt</span></div></a>`; }).join('')}</div>${syncNote()}`)}
-  ${sec('02', 'Bài sắp đăng', box('', `${next.length} bài gần nhất, cả hai page`, next.length ? `<div class="list">${next.map(p => `<div class="li">${dbox(p.date)}<div><div class="t">${docLink(p) ? `<a href="${docLink(p)}" target="_blank" rel="noopener">${esc(p['Tiêu đề / chủ đề'])}</a>` : esc(p['Tiêu đề / chủ đề'])}</div><div class="s">${PAGE_NAME[p.page]} · ${esc(p['Trụ cột'])} · ${esc(p['Định dạng'])}</div></div>${apprOf(p.key).st ? tag(apprOf(p.key).st === 'Đã duyệt' ? 'Đã duyệt' : 'Chưa xong: cần sửa') : `<span class="tag">Chờ duyệt</span>`}</div>`).join('')}</div>` : empty('Không có bài sắp đăng'), 'Lịch bài KSB · Lịch bài Đất Cuốc'))}`;
+  ${sec('02', 'Bài sắp đăng', box('', `${next.length} bài gần nhất, cả hai page`, next.length ? `<div class="list">${next.map(p => `<div class="li">${dbox(p.date)}<div><div class="t">${docLink(p) ? `<a href="${docLink(p)}" target="_blank" rel="noopener">${esc(p['Tiêu đề / chủ đề'])}</a>` : esc(p['Tiêu đề / chủ đề'])}</div><div class="s">${PAGE_NAME[p.page]} · ${esc(p['Trụ cột'])} · ${esc(p['Định dạng'])}</div></div>${apprOf(p.key).st ? tag(apprOf(p.key).st === 'Đã duyệt' ? 'Đã duyệt' : 'Chưa xong: cần sửa') : `<span class="tag">Chờ duyệt</span>`}</div>`).join('')}</div>` : empty('Không có bài sắp đăng'), 'Lịch bài KSB · Lịch bài Đất Cuốc'))}
+  ${sec('03', 'Chiến dịch', `<div class="tiles">${itemsOf('noi-dung').filter(i => i.camp).map(i => { const c = campOf(i); return `<a class="tile" href="#/${i.id}" style="--c:${gColor(i.id)}"><div class="ico">${ic(gIcon(i.id))}</div><div class="k">Chiến dịch ${esc(c.year || '')}</div><h3>${esc(c.name || i.t)}</h3><p>${esc(c.tagline || i.s)}</p><div class="st"><b>${(c.options || []).length}</b><span>phương án · ${esc(c.status || '')}</span></div></a>`; }).join('')}</div>`, 'Nội dung, ý nghĩa, cách triển khai và dự trù ngân sách từng chiến dịch')}`;
+  return { html };
+}
+/* ---------- Chiến dịch (mục Nội dung) — chữ ở data/chien-dich.js, số tiền ở tab NS của Sheet ---------- */
+const campOf = item => (window.KSB_CAMPAIGNS || []).find(c => c.id === item.camp) || {};
+function campBudget(c) {
+  const g = G(c.budgetTab || ''); if (!g.length) return null;
+  const rows = table(g, r => cell(r, 0) === 'STT' && cell(r, 2) === 'Hạng mục').filter(x => /^\d+$/.test(x.STT));
+  const head = (g.find(r => cell(r, 0) === 'STT' && cell(r, 2) === 'Hạng mục') || []).map(x => String(x).trim());
+  const cols = [head[3], head[4]].filter(Boolean);
+  const sum = label => { const r = rowBy(g, label); return [num(r[3]), num(r[4])]; };
+  return { rows, cols, sub: sum('Cộng chưa dự phòng'), dp: sum('Cộng dự phòng'), vat: sum('Cộng VAT'), tot: sum('TỔNG NGÂN SÁCH') };
+}
+function pCampaign(item) {
+  const c = campOf(item); const tabs = tabsOf([{ id: 'noi-dung', t: 'Tổng quan' }].concat(itemsOf('noi-dung')), item.id);
+  const ser = M.series || []; const opts = c.options || [];
+  const B = M.unlocked ? campBudget(c) : null;
+  const optCard = o => `<section class="box"><div class="bh"><div><h3>${esc(o.k)} · ${esc(o.t)} ${o.rec ? '<span class="tag good">Đề xuất</span>' : ''}</h3><div class="cap">${esc(o.how)}</div></div></div>
+    <table class="tbl">${o.rows.map(r => `<tr><td style="width:120px"><b>${esc(r[0])}</b></td><td>${esc(r[1])}</td></tr>`).join('')}</table>
+    <div class="grid g2" style="margin-top:14px"><div><div class="cap" style="font-weight:600;color:var(--good)">Được</div><ul class="ul">${o.pros.map(x => `<li>${esc(x)}</li>`).join('')}</ul></div><div><div class="cap" style="font-weight:600;color:var(--crit)">Mất</div><ul class="ul">${o.cons.map(x => `<li>${esc(x)}</li>`).join('')}</ul></div></div></section>`;
+  let budget;
+  if (!M.unlocked) budget = lockCard(`Dự trù ngân sách ${opts.length} phương án chiến dịch ${c.name || ''}`);
+  else if (!B) budget = empty('Chưa đọc được tab ' + esc(c.budgetTab || ''), 'Tab có trong Sheet nhưng bản lưu ngoại tuyến chưa có; mở trang khi có kết nối trực tiếp với Sheet.');
+  else {
+    let grp = '';
+    const body = B.rows.map(r => { const g = r['Nhóm']; const gh = g !== grp ? (grp = g, `<tr><td colspan="3" style="padding-top:16px"><b>${esc(g)}</b></td></tr>`) : ''; const v = r._r; return gh + `<tr><td>${esc(r['Hạng mục'])}</td><td class="r tnum">${num(v[3]) ? fVND(num(v[3])) : '–'}</td><td class="r tnum">${num(v[4]) ? fVND(num(v[4])) : '–'}</td></tr>`; }).join('');
+    const tr = (l, a, b, s = '') => `<tr${s}><td>${l}</td><td class="r tnum">${fVND(a)}</td><td class="r tnum">${fVND(b)}</td></tr>`;
+    budget = `<div class="figs-row grid g3" style="margin-bottom:18px">${B.cols.map((k, i) => box(esc(k), 'gồm dự phòng, VAT', `<div style="font-size:30px;font-weight:700">${fVND(B.tot[i])}</div>`, c.budgetTab)).join('')}${box('Chênh lệch', 'PA 02 so với PA 01', `<div style="font-size:30px;font-weight:700;color:var(--crit)">${fVND(B.tot[1] - B.tot[0])}</div>`, c.budgetTab)}</div>
+      ${box('Dự trù chi tiết', 'Đơn vị: đồng, chưa VAT ở từng dòng', `<table class="tbl"><tr><th>Hạng mục</th>${B.cols.map(k => `<th class="r">${esc(k)}</th>`).join('')}</tr>${body}${tr('<b>Cộng chưa dự phòng, VAT</b>', B.sub[0], B.sub[1], ' style="border-top:2px solid var(--line)"')}${tr('Dự phòng', B.dp[0], B.dp[1])}${tr('VAT', B.vat[0], B.vat[1])}${tr('<b>Tổng ngân sách</b>', B.tot[0], B.tot[1])}</table>`, c.budgetTab)}`;
+  }
+  const html = `${head({ crumb: [{ id: 'noi-dung', t: 'Nội dung' }, { t: item.t }], title: `Chiến dịch · <b>${esc(c.name || item.t)}</b> ${esc(c.year || '')}`, lead: `${esc(c.tagline || '')} · ${esc(c.status || '')}`, tabs, figs: [fig(ser.length || 12, 'số e-magazine'), fig((c.quarters || []).length, 'clip quý'), fig(opts.length, 'phương án triển khai'), fig(M.unlocked ? 'Mở' : 'Khóa', 'dự trù ngân sách', '', M.unlocked ? 'unlock' : 'lock')] })}
+  ${sec('01', 'Nội dung và ý nghĩa', `<div class="grid g64">${box('Ý nghĩa', '', `<p style="font-size:15px;line-height:1.6">${esc(c.meaning || '')}</p>`, 'Tổng quan · mục 3')}${box('Hành trình 4 quý', 'Cuối năm ghép thành cây "Người KSB"', `<div class="list">${(c.quarters || []).map(q => `<div class="li"><span class="mi" style="--mc:${q.c}">${ic('root')}</span><div><div class="t">${esc(q.k)}</div><div class="s">${esc(q.v)} · ${esc(q.w)}</div></div></div>`).join('')}</div>`, 'Tổng quan · mục 3')}</div>
+    <div style="height:20px"></div>${box('12 câu chuyện e-magazine', `${ser.length} số trong tab Series hàng tháng`, ser.length ? `<table class="tbl"><tr><th>Số</th><th>Phát hành</th><th>Câu chuyện</th><th>Khối</th><th>Gắn với dịp</th></tr>${ser.map(s => `<tr><td><b>${esc(s['Số'])}</b></td><td>${esc(s['Ngày phát hành dự kiến'])}</td><td>${esc(s['Tên câu chuyện (tạm)'])}</td><td>${esc(s['Khối / đơn vị'])}</td><td>${esc(s['Gắn với dịp'])}</td></tr>`).join('')}</table>` : empty('Chưa có lịch series'), 'Series hàng tháng')}`)}
+  ${sec('02', 'Cách triển khai', `<div class="grid g4">${(c.formats || []).map(f => box(esc(f.t), '', `<p>${esc(f.d)}</p>`)).join('')}</div><div style="height:20px"></div>
+    <div class="grid g64">${box('Quy trình mỗi số', 'Tính ngược từ ngày phát hành', `<table class="tbl">${(c.process || []).map(p => `<tr><td style="width:90px"><b>${esc(p[0])}</b></td><td>${esc(p[1])}</td></tr>`).join('')}</table>`, 'Series hàng tháng')}${box('Nguyên tắc', '', `<ul class="ul">${(c.rules || []).map(r => `<li>${esc(r)}</li>`).join('')}</ul>`, 'Tổng quan · mục 4, 8')}</div>`)}
+  ${sec('03', 'Hai phương án triển khai', `<div class="grid g2">${opts.map(optCard).join('')}</div><div class="cnote" style="margin-top:16px">${ic('check')}<span><b>Đề xuất:</b> ${esc(c.recommend || '')}</span></div>`)}
+  ${sec('04', 'Dự trù ngân sách', budget)}
+  ${sec('05', 'Kết quả kỳ vọng và việc cần chốt', `<div class="grid g2">${box('Kết quả kỳ vọng', '', `<ul class="ul">${(c.kpis || []).map(x => `<li>${esc(x)}</li>`).join('')}</ul>`)}${box('Cần lãnh đạo chốt', '', `<ul class="ul">${(c.decide || []).map(x => `<li>${esc(x)}</li>`).join('')}</ul>`)}</div>`)}`;
   return { html };
 }
 function pContentPage(item) {
@@ -1040,7 +1079,7 @@ const ROUTES = {
   'ngan-sach': guard(pBudgetHub), 'ngan-sach/doi-ngoai': guard(pBudgetExt), 'ngan-sach/noi-bo': guard(pBudgetInt)
 };
 itemsOf('rui-ro').forEach(i => ROUTES[i.id] = () => pRiskGroup(i));
-itemsOf('noi-dung').forEach(i => ROUTES[i.id] = () => pContentPage(i));
+itemsOf('noi-dung').forEach(i => ROUTES[i.id] = () => i.camp ? pCampaign(i) : pContentPage(i));
 itemsOf('hoat-dong').forEach(i => ROUTES[i.id] = () => pActGroup(i));
 const ORDER = [''].concat(NAV.flatMap(n => [n.id].concat(n.groups.flatMap(g => g.items.map(i => i.id)))));
 const curId = () => { const h = location.hash.replace(/^#\/?/, ''); return h in ROUTES ? h : ''; };

@@ -235,7 +235,7 @@ const SUB = {
   'truyen-thong/bao-chi': ['news', 'gala-mc'], 'truyen-thong/tai-tro': ['money', 'gala-khach'], 'truyen-thong/su-kien-ben-ngoai': ['event', 'kcn-phoi-canh'], 'truyen-thong/doi-noi': ['users', 'pn-tap-the'], 'truyen-thong/kenh-so': ['channel', 'kcn-phoi-canh'],
   'su-kien/noi-bo': ['users', 'pn-nhom'], 'su-kien/doi-ngoai': ['comm', 'gala-mc'], 'su-kien/co-dong': ['chart', 'gala-khach'], 'su-kien/ky-niem': ['event', 'gala-ky-niem'], 'su-kien/le-tet': ['event', 'pn-hoa'],
   'rui-ro/thuong-hieu': ['brand', 'kcn-cong'], 'rui-ro/lanh-dao': ['users', 'pn-phat-bieu'], 'rui-ro/hdsx': ['layers', 'mo-xe-1'], 'rui-ro/tai-chinh': ['money', 'mo-xe-2'],
-  'noi-dung/ksb': ['brand', 'pn-tap-the'], 'noi-dung/dat-cuoc': ['channel', 'kcn-cong'], 'noi-dung/nguoi-ksb': ['users', 'pn-tap-the-2'],
+  'noi-dung/ksb': ['brand', 'pn-tap-the'], 'noi-dung/dat-cuoc': ['channel', 'kcn-cong'], 'noi-dung/nguoi-ksb': ['users', 'gala-mc'],
   'ngan-sach/doi-ngoai': ['news', 'gala-mc'], 'ngan-sach/noi-bo': ['users', 'pn-tap-the'],
   'hoat-dong/hoi': ['users', 'pn-tap-the-2'], 'hoat-dong/esg': ['act', 'kcn-phoi-canh'], 'hoat-dong/csr': ['heart', 'pn-tang-cay']
 };
@@ -705,29 +705,59 @@ function campBudget(c) {
 }
 function pCampaign(item) {
   const c = campOf(item); const tabs = tabsOf([{ id: 'noi-dung', t: 'Tổng quan' }].concat(itemsOf('noi-dung')), item.id);
-  const ser = M.series || []; const opts = c.options || [];
+  const ser = M.series || []; const opts = c.options || []; const Q = c.quarters || [];
   const B = M.unlocked ? campBudget(c) : null;
-  const optCard = o => `<section class="box"><div class="bh"><div><h3>${esc(o.k)} · ${esc(o.t)} ${o.rec ? '<span class="tag good">Đề xuất</span>' : ''}</h3><div class="cap">${esc(o.how)}</div></div></div>
-    <table class="tbl">${o.rows.map(r => `<tr><td style="width:120px"><b>${esc(r[0])}</b></td><td>${esc(r[1])}</td></tr>`).join('')}</table>
-    <div class="grid g2" style="margin-top:14px"><div><div class="cap" style="font-weight:600;color:var(--good)">Được</div><ul class="ul">${o.pros.map(x => `<li>${esc(x)}</li>`).join('')}</ul></div><div><div class="cap" style="font-weight:600;color:var(--crit)">Mất</div><ul class="ul">${o.cons.map(x => `<li>${esc(x)}</li>`).join('')}</ul></div></div></section>`;
+  const words = c.values || [];
+  const ann = new Date(CFG.MILESTONES.anniversary || '2028-01-01'), dleft = Math.max(0, days(today(), ann));
+  const d01 = String((ser[0] || {})['Ngày phát hành dự kiến'] || '').replace(/^[^0-9]+/, '') || '15/01/2027';
+  const mOf = s => +String(s['Tháng'] || '').replace(/\D/g, '');
+  // 01 · Big idea
+  const hero = `<div class="cph" style="--img:url('${IMG(c.heroImg || 'pn-tap-the')}')">
+    <div class="cph-t"><small>Big idea ${esc(c.year || '')}</small><h3>${esc((c.name || '').toUpperCase())}</h3><p class="cph-tag">${esc(c.tagline || '')}</p>
+      <div class="cph-w">${words.map(w => `<span>${esc(w)}</span>`).join('')}</div></div>
+    <div class="cph-s"><div><b>${ser.length || 12}</b><span>câu chuyện e-magazine</span></div><div><b>${Q.length}</b><span>clip quý</span></div><div><b>${esc(d01)}</b><span>phát hành số 01</span></div><div><b>${dleft}</b><span>ngày tới 35 năm KSB</span></div></div>
+  </div>
+  <div class="kline"><small>Ý nghĩa chiến dịch</small><p>${esc(c.meaning || '')}</p></div>`;
+  // 02 · Hành trình 4 quý (gom 12 câu chuyện theo quý)
+  const qCards = Q.map((q, i) => {
+    const st = ser.filter(s => mOf(s) > i * 3 && mOf(s) <= i * 3 + 3);
+    return `<div class="cq" style="--c:${q.c};--img:url('${IMG(q.img || 'pn-tap-the')}')"><div class="cq-im"><span class="cq-n">Q${i + 1}</span><div><small>${esc(q.w)}</small><b>${esc(q.k.replace(/^Q\d\s*·\s*/, ''))}</b><span>${esc(q.v)}</span></div></div>
+      <ol class="cq-l">${st.map(s => `<li><em>${esc(s['Số'])}</em><div><b>${esc(s['Tên câu chuyện (tạm)'])}</b><span>${esc(String(s['Ngày phát hành dự kiến'] || '').replace(/^[^0-9]+/, ''))} · ${esc(s['Khối / đơn vị'])}</span></div></li>`).join('')}</ol></div>`;
+  }).join('');
+  const journey = `<div class="cqg">${qCards}</div><div class="cq-end">${ic('root')}<span>Cuối năm 4 hình ảnh ghép thành cây <b>"Người KSB"</b>; 01/2028 cây kết trái bằng phim tài liệu 35 năm.</span></div>`;
+  // 03 · Cách triển khai
+  const fIc = ['news', 'event', 'channel', 'users'], fC = ['#0a4e9b', '#ed1c24', '#1a7f4b', '#c98a00'];
+  const fmt = `<div class="cfg">${(c.formats || []).map((f, i) => `<div class="cf" style="--mc:${fC[i % 4]}"><div class="cf-h"><span class="mi">${ic(fIc[i % 4])}</span><small>0${i + 1}</small></div><h4>${esc(f.t)}</h4><p>${esc(f.d)}</p></div>`).join('')}</div>
+    <div class="cst"><div class="cst-h"><b>Quy trình sản xuất mỗi số</b><span>Tính ngược từ ngày phát hành</span></div><ol>${(c.process || []).map(p => `<li class="${/^Tuần 0/.test(p[0]) ? 'on' : ''}"><i></i><b>${esc(p[0])}</b><span>${esc(p[1])}</span></li>`).join('')}</ol></div>
+    <div class="crl"><div class="crl-h"><span class="mi" style="--mc:#1a7f4b">${ic('check')}</span><b>Nguyên tắc bắt buộc</b></div><ul>${(c.rules || []).map(r => `<li>${esc(r)}</li>`).join('')}</ul></div>`;
+  // 04 · Hai phương án
+  const optCard = o => `<div class="cpo ${o.rec ? 'rec' : ''}"><div class="cpo-h"><div><small>${esc(o.k)}</small><b>${esc(o.t)}</b><span>${esc(o.how)}</span></div>${o.rec ? '<em>Đề xuất</em>' : ''}</div>
+    <div class="cpo-r">${o.rows.map(r => `<div><small>${esc(r[0])}</small><p>${esc(r[1])}</p></div>`).join('')}</div>
+    <div class="cpo-pc"><div class="ok"><small>Được</small><ul>${o.pros.map(x => `<li>${esc(x)}</li>`).join('')}</ul></div><div class="no"><small>Mất</small><ul>${o.cons.map(x => `<li>${esc(x)}</li>`).join('')}</ul></div></div></div>`;
+  const options = `<div class="cpog">${opts.map(optCard).join('')}</div><div class="cnext"><span class="mi" style="--mc:#ed1c24">${ic('target')}</span><div><small>Đề xuất của phòng Truyền thông</small><b>${esc(c.recommend || '')}</b></div></div>`;
+  // 05 · Ngân sách (chỉ khi mở mật khẩu)
   let budget;
   if (!M.unlocked) budget = lockCard(`Dự trù ngân sách ${opts.length} phương án chiến dịch ${c.name || ''}`);
   else if (!B) budget = empty('Chưa đọc được tab ' + esc(c.budgetTab || ''), 'Tab có trong Sheet nhưng bản lưu ngoại tuyến chưa có; mở trang khi có kết nối trực tiếp với Sheet.');
   else {
-    let grp = '';
-    const body = B.rows.map(r => { const g = r['Nhóm']; const gh = g !== grp ? (grp = g, `<tr><td colspan="3" style="padding-top:16px"><b>${esc(g)}</b></td></tr>`) : ''; const v = r._r; return gh + `<tr><td>${esc(r['Hạng mục'])}</td><td class="r tnum">${num(v[3]) ? fVND(num(v[3])) : '–'}</td><td class="r tnum">${num(v[4]) ? fVND(num(v[4])) : '–'}</td></tr>`; }).join('');
-    const tr = (l, a, b, s = '') => `<tr${s}><td>${l}</td><td class="r tnum">${fVND(a)}</td><td class="r tnum">${fVND(b)}</td></tr>`;
-    budget = `<div class="figs-row grid g3" style="margin-bottom:18px">${B.cols.map((k, i) => box(esc(k), 'gồm dự phòng, VAT', `<div style="font-size:30px;font-weight:700">${fVND(B.tot[i])}</div>`, c.budgetTab)).join('')}${box('Chênh lệch', 'PA 02 so với PA 01', `<div style="font-size:30px;font-weight:700;color:var(--crit)">${fVND(B.tot[1] - B.tot[0])}</div>`, c.budgetTab)}</div>
-      ${box('Dự trù chi tiết', 'Đơn vị: đồng, chưa VAT ở từng dòng', `<table class="tbl"><tr><th>Hạng mục</th>${B.cols.map(k => `<th class="r">${esc(k)}</th>`).join('')}</tr>${body}${tr('<b>Cộng chưa dự phòng, VAT</b>', B.sub[0], B.sub[1], ' style="border-top:2px solid var(--line)"')}${tr('Dự phòng', B.dp[0], B.dp[1])}${tr('VAT', B.vat[0], B.vat[1])}${tr('<b>Tổng ngân sách</b>', B.tot[0], B.tot[1])}</table>`, c.budgetTab)}`;
+    const groups = [...new Set(B.rows.map(r => r['Nhóm']))].map(g => { const rs = B.rows.filter(r => r['Nhóm'] === g); return { g, a: rs.reduce((s, r) => s + num(r._r[3]), 0), b: rs.reduce((s, r) => s + num(r._r[4]), 0), rs }; });
+    const mx = Math.max(1, ...groups.map(x => Math.max(x.a, x.b)));
+    const v = n => n ? fVND(n) : '–'; const fTr = n => (n / 1e6).toLocaleString('vi-VN', { maximumFractionDigits: 1 }) + ' tr';
+    const bars = groups.map(x => `<div class="cbr"><b>${esc(x.g)}</b><div class="cbr-b"><div><i class="a" style="width:${x.a / mx * 100}%"></i><span>${v(x.a)}</span></div><div><i class="b" style="width:${x.b / mx * 100}%"></i><span>${v(x.b)}</span></div></div></div>`).join('');
+    const tbl = `<table class="tbl"><tr><th>Hạng mục</th>${B.cols.map(k => `<th class="r">${esc(k)}</th>`).join('')}</tr>${groups.map(x => `<tr><td colspan="3" style="padding-top:16px"><b>${esc(x.g)}</b></td></tr>` + x.rs.map(r => `<tr><td>${esc(r['Hạng mục'])}</td><td class="r tnum">${v(num(r._r[3]))}</td><td class="r tnum">${v(num(r._r[4]))}</td></tr>`).join('')).join('')}<tr><td><b>Cộng chưa dự phòng, VAT</b></td><td class="r tnum">${fVND(B.sub[0])}</td><td class="r tnum">${fVND(B.sub[1])}</td></tr><tr><td>Dự phòng</td><td class="r tnum">${fVND(B.dp[0])}</td><td class="r tnum">${fVND(B.dp[1])}</td></tr><tr><td>VAT</td><td class="r tnum">${fVND(B.vat[0])}</td><td class="r tnum">${fVND(B.vat[1])}</td></tr></table>`;
+    budget = `<div class="cbt"><div class="cbt-k a"><small>${esc(B.cols[0] || 'PA 01')}</small><b>${fTr(B.tot[0])}</b><span>gồm dự phòng, VAT</span></div><div class="cbt-k b"><small>${esc(B.cols[1] || 'PA 02')}</small><b>${fTr(B.tot[1])}</b><span>gồm dự phòng, VAT</span></div><div class="cbt-k d"><small>Chênh lệch</small><b>${fTr(B.tot[1] - B.tot[0])}</b><span>PA 02 gấp ${B.tot[0] ? (B.tot[1] / B.tot[0]).toLocaleString('vi-VN', { maximumFractionDigits: 1 }) : '–'} lần PA 01</span></div></div>
+      ${box('So sánh theo nhóm hạng mục', 'Chưa dự phòng, VAT', `<div class="cbl"><span><i class="a"></i>${esc(B.cols[0] || 'PA 01')}</span><span><i class="b"></i>${esc(B.cols[1] || 'PA 02')}</span></div>${bars}<details class="cdt"><summary>Xem dự trù từng dòng</summary>${tbl}</details>`, c.budgetTab)}`;
   }
-  const html = `${head({ crumb: [{ id: 'noi-dung', t: 'Nội dung' }, { t: item.t }], title: `Chiến dịch · <b>${esc(c.name || item.t)}</b> ${esc(c.year || '')}`, lead: `${esc(c.tagline || '')} · ${esc(c.status || '')}`, tabs, figs: [fig(ser.length || 12, 'số e-magazine'), fig((c.quarters || []).length, 'clip quý'), fig(opts.length, 'phương án triển khai'), fig(M.unlocked ? 'Mở' : 'Khóa', 'dự trù ngân sách', '', M.unlocked ? 'unlock' : 'lock')] })}
-  ${sec('01', 'Nội dung và ý nghĩa', `<div class="grid g64">${box('Ý nghĩa', '', `<p style="font-size:15px;line-height:1.6">${esc(c.meaning || '')}</p>`, 'Tổng quan · mục 3')}${box('Hành trình 4 quý', 'Cuối năm ghép thành cây "Người KSB"', `<div class="list">${(c.quarters || []).map(q => `<div class="li"><span class="mi" style="--mc:${q.c}">${ic('root')}</span><div><div class="t">${esc(q.k)}</div><div class="s">${esc(q.v)} · ${esc(q.w)}</div></div></div>`).join('')}</div>`, 'Tổng quan · mục 3')}</div>
-    <div style="height:20px"></div>${box('12 câu chuyện e-magazine', `${ser.length} số trong tab Series hàng tháng`, ser.length ? `<table class="tbl"><tr><th>Số</th><th>Phát hành</th><th>Câu chuyện</th><th>Khối</th><th>Gắn với dịp</th></tr>${ser.map(s => `<tr><td><b>${esc(s['Số'])}</b></td><td>${esc(s['Ngày phát hành dự kiến'])}</td><td>${esc(s['Tên câu chuyện (tạm)'])}</td><td>${esc(s['Khối / đơn vị'])}</td><td>${esc(s['Gắn với dịp'])}</td></tr>`).join('')}</table>` : empty('Chưa có lịch series'), 'Series hàng tháng')}`)}
-  ${sec('02', 'Cách triển khai', `<div class="grid g4">${(c.formats || []).map(f => box(esc(f.t), '', `<p>${esc(f.d)}</p>`)).join('')}</div><div style="height:20px"></div>
-    <div class="grid g64">${box('Quy trình mỗi số', 'Tính ngược từ ngày phát hành', `<table class="tbl">${(c.process || []).map(p => `<tr><td style="width:90px"><b>${esc(p[0])}</b></td><td>${esc(p[1])}</td></tr>`).join('')}</table>`, 'Series hàng tháng')}${box('Nguyên tắc', '', `<ul class="ul">${(c.rules || []).map(r => `<li>${esc(r)}</li>`).join('')}</ul>`, 'Tổng quan · mục 4, 8')}</div>`)}
-  ${sec('03', 'Hai phương án triển khai', `<div class="grid g2">${opts.map(optCard).join('')}</div><div class="cnote" style="margin-top:16px">${ic('check')}<span><b>Đề xuất:</b> ${esc(c.recommend || '')}</span></div>`)}
-  ${sec('04', 'Dự trù ngân sách', budget)}
-  ${sec('05', 'Kết quả kỳ vọng và việc cần chốt', `<div class="grid g2">${box('Kết quả kỳ vọng', '', `<ul class="ul">${(c.kpis || []).map(x => `<li>${esc(x)}</li>`).join('')}</ul>`)}${box('Cần lãnh đạo chốt', '', `<ul class="ul">${(c.decide || []).map(x => `<li>${esc(x)}</li>`).join('')}</ul>`)}</div>`)}`;
+  // 06 · Kết quả & việc cần chốt
+  const out = `<div class="grid g2"><div class="cko"><div class="crl-h"><span class="mi" style="--mc:#0a4e9b">${ic('chart')}</span><b>Kết quả kỳ vọng 2027</b></div><ul>${(c.kpis || []).map(x => `<li>${ic('check')}<span>${esc(x)}</span></li>`).join('')}</ul></div>
+    <div class="cko dec"><div class="crl-h"><span class="mi" style="--mc:#ed1c24">${ic('alert')}</span><b>Cần lãnh đạo chốt</b></div><ol>${(c.decide || []).map(x => `<li><span>${esc(x)}</span></li>`).join('')}</ol></div></div>`;
+  const html = `${head({ crumb: [{ id: 'noi-dung', t: 'Nội dung' }, { t: item.t }], title: `Chiến dịch <b>${esc(c.name || item.t)} ${esc(c.year || '')}</b>`, lead: `${esc(c.status || '')}. Nội dung, ý nghĩa, cách triển khai e-magazine và clip quý, hai phương án và dự trù ngân sách.`, tabs })}
+  ${sec('01', 'Big idea', hero)}
+  ${sec('02', 'Hành trình 4 quý · 12 câu chuyện', journey)}
+  ${sec('03', 'Cách triển khai', fmt)}
+  ${sec('04', 'Hai phương án triển khai', options)}
+  ${sec('05', 'Dự trù ngân sách', budget)}
+  ${sec('06', 'Kết quả kỳ vọng và việc cần chốt', out)}`;
   return { html };
 }
 function pContentPage(item) {

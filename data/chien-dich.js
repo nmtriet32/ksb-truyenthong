@@ -11,11 +11,13 @@ window.KSB_CAMPAIGNS = [
     budgetTab: 'NS Người KSB · 2 PA',
     tagline: 'Lặng lẽ cho đi, bền bỉ dựng xây.',
     meaning: 'Người KSB là những người đã gắn bó hàng chục năm với công ty: người thợ ở mỏ, người làm ở văn phòng, ở khu công nghiệp. Sự vững vàng của KSB được dựng nên từ sự bền bỉ của họ. Chiến dịch đưa hình ảnh KSB về con người cụ thể, có câu chuyện, và tích lũy tư liệu cho phim tài liệu 35 năm (01/2028).',
+    heroImg: 'pn-tap-the',
+    values: ['Lặng lẽ', 'Cho đi', 'Bền bỉ', 'Dựng xây'],
     quarters: [
-      { k: 'Q1 · Gốc', v: 'Những người đặt nền', w: 'Lặng lẽ', c: '#0a4e9b' },
-      { k: 'Q2 · Thân', v: 'Sức bền vượt khó', w: 'Bền bỉ', c: '#2563a8' },
-      { k: 'Q3 · Lá', v: 'Việc thầm lặng nuôi cả cây', w: 'Cho đi', c: '#1a7f4b' },
-      { k: 'Q4 · Hoa', v: 'Thế hệ tiếp nối', w: 'Dựng xây', c: '#ed1c24' }
+      { k: 'Q1 · Gốc', v: 'Những người đặt nền', w: 'Lặng lẽ', c: '#0a4e9b', img: 'pn-tang-cay' },
+      { k: 'Q2 · Thân', v: 'Sức bền vượt khó', w: 'Bền bỉ', c: '#123a6e', img: 'mo-xe-2' },
+      { k: 'Q3 · Lá', v: 'Việc thầm lặng nuôi cả cây', w: 'Cho đi', c: '#1a7f4b', img: 'kcn-phoi-canh' },
+      { k: 'Q4 · Hoa', v: 'Thế hệ tiếp nối', w: 'Dựng xây', c: '#c41a21', img: 'gala-vinh-danh' }
     ],
     formats: [
       { t: 'E-magazine', d: '1 số mỗi tháng trên trang chủ đề "Người KSB" ở ksb.vn: bài dài, ảnh lớn, trích dẫn nổi, 1 video ngắn nhúng, đọc tốt trên điện thoại.' },
